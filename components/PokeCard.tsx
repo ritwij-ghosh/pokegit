@@ -234,8 +234,8 @@ export default function PokeCard({
           <button
             type="button"
             onClick={() => fileInput.current?.click()}
-            className="rounded-lg border border-[var(--border)] px-3 py-1.5 font-mono text-[11px]
-                       text-[var(--muted)] transition hover:text-[var(--foreground)]"
+            className="gba-btn px-3 py-2 font-display text-[0.5rem] uppercase
+                       text-[var(--foreground)]"
           >
             use your own image
           </button>
@@ -247,8 +247,8 @@ export default function PokeCard({
                 setCustomImage(null);
                 if (fileInput.current) fileInput.current.value = "";
               }}
-              className="font-mono text-[11px] text-[var(--muted)] underline
-                         decoration-dotted underline-offset-4 transition hover:text-[var(--foreground)]"
+              className="text-[11px] text-[var(--muted)] underline decoration-dotted
+                         underline-offset-4 transition hover:text-[var(--accent)]"
             >
               reset to avatar
             </button>

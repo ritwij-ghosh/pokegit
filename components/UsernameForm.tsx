@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { COPY } from "@/lib/copy";
+
 const GITHUB_USERNAME = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i;
+
+const EXAMPLES = ["torvalds", "sindresorhus", "rich-harris"];
 
 export default function UsernameForm({
   autoFocus = false,
@@ -32,7 +36,7 @@ export default function UsernameForm({
 
   return (
     <div className="w-full max-w-md">
-      <form onSubmit={submit} className="flex gap-2">
+      <form onSubmit={submit} className="flex flex-col gap-3 sm:flex-row">
         <input
           value={value}
           onChange={(event) => {
@@ -43,48 +47,64 @@ export default function UsernameForm({
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
-          placeholder="github username"
+          placeholder={COPY.home.inputPlaceholder}
           aria-label="GitHub username"
-          className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)]
-                     px-4 py-3 font-mono text-sm text-[var(--foreground)]
-                     placeholder:text-[var(--muted)]
-                     outline-none transition focus:border-[var(--accent)]
-                     focus:ring-2 focus:ring-[var(--accent)]/20"
+          className="gba-field min-w-0 flex-1 px-3 py-3 text-sm text-[var(--foreground)]
+                     placeholder:text-[var(--muted)]"
         />
         <button
           type="submit"
           disabled={pending}
-          className="shrink-0 rounded-xl bg-[var(--accent)] px-5 py-3 text-sm font-semibold
-                     tracking-wide text-black transition hover:brightness-110
-                     disabled:cursor-not-allowed disabled:opacity-60"
+          className="gba-btn gba-btn-primary shrink-0 px-4 py-3 font-display text-[0.6rem]
+                     uppercase"
         >
-          {pending ? "SCANNING…" : "SCAN →"}
+          {pending ? (
+            <span className="dex-blink">{COPY.home.submitPending}</span>
+          ) : (
+            <span className="inline-flex items-center gap-2">
+              {COPY.home.submitIdle}
+              <Caret />
+            </span>
+          )}
         </button>
       </form>
 
-      <div className="mt-3 flex min-h-5 items-center gap-2 text-xs">
+      <div className="mt-3 flex min-h-5 items-start gap-2 text-xs leading-relaxed">
         {error ? (
-          <span className="text-red-400">{error}</span>
+          <span className="text-[var(--pokedex-red)]">{error}</span>
         ) : (
           <span className="text-[var(--muted)]">
-            try{" "}
-            {["torvalds", "sindresorhus", "rich-harris"].map((name, index) => (
+            {COPY.home.tryPrompt}{" "}
+            {EXAMPLES.map((name, index) => (
               <span key={name}>
-                {index > 0 && " · "}
+                {index > 0 && " / "}
                 <button
                   type="button"
                   onClick={() => startTransition(() => router.push(`/${name}`))}
-                  className="font-mono underline decoration-dotted underline-offset-4
-                             transition hover:text-[var(--foreground)]"
+                  className="underline decoration-dotted underline-offset-4
+                             transition hover:text-[var(--accent)]"
                 >
                   {name}
                 </button>
               </span>
             ))}{" "}
-            · or your own
+            / {COPY.home.tryTail}
           </span>
         )}
       </div>
     </div>
+  );
+}
+
+/** Pixel caret, standing in for an arrow glyph the display font lacks. */
+function Caret() {
+  return (
+    <svg width="8" height="10" viewBox="0 0 8 10" fill="currentColor" aria-hidden>
+      <rect x="0" y="0" width="2" height="2" />
+      <rect x="2" y="2" width="2" height="2" />
+      <rect x="4" y="4" width="2" height="2" />
+      <rect x="2" y="6" width="2" height="2" />
+      <rect x="0" y="8" width="2" height="2" />
+    </svg>
   );
 }

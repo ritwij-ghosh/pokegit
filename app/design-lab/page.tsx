@@ -28,7 +28,7 @@ const SAMPLES = [
 export default function DesignLab() {
   return (
     <main className="mx-auto w-full max-w-[1600px] px-8 py-10">
-      <h1 className="mb-8 font-mono text-sm uppercase tracking-[0.18em] text-[var(--muted)]">
+      <h1 className="mb-8 font-display text-[0.7rem] uppercase text-[var(--foreground)]">
         card palette harness
       </h1>
       <div className="flex flex-wrap gap-10">
@@ -47,8 +47,8 @@ export default function DesignLab() {
                 width="330px"
                 allowImageUpload={false}
               />
-              <span className="font-mono text-[11px] text-[var(--muted)]">
-                {sample.language} · {type} · {languageColor(sample.language)}
+              <span className="text-[11px] text-[var(--muted)]">
+                {sample.language} / {type} / {languageColor(sample.language)}
               </span>
             </div>
           );

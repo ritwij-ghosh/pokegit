@@ -1,66 +1,72 @@
+import { DexBall } from "@/components/DexBall";
 import UsernameForm from "@/components/UsernameForm";
-
-const HIGHLIGHTS = [
-  { label: "Six base stats", detail: "normalized 1–255 from real activity" },
-  { label: "Dual typing", detail: "from the languages you actually write" },
-  { label: "One of 25 abilities", detail: "picked by rules, not vibes" },
-  { label: "Pokedex entry", detail: "written from your own numbers" },
-];
+import Wordmark from "@/components/Wordmark";
+import { COPY } from "@/lib/copy";
 
 export default function Home() {
   return (
-    <main className="lattice relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-20">
-      {/* Soft radial glow behind the hero. */}
+    <main className="tile-route relative flex flex-1 flex-col items-center justify-center overflow-hidden px-4 py-14 sm:px-6">
+      {/* Soft radial glow behind the hero panel. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/3 h-[42rem] w-[42rem]
-                   -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40 blur-3xl"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[42rem] w-[42rem]
+                   -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 blur-3xl"
         style={{
           background:
-            "radial-gradient(circle, rgba(74,222,128,0.16) 0%, rgba(8,9,13,0) 70%)",
+            "radial-gradient(circle, var(--accent-soft) 0%, transparent 70%)",
         }}
       />
 
-      <div className="relative w-full max-w-lg rise">
-        <span
-          className="inline-flex items-center gap-2 rounded-full border border-[var(--border)]
-                     bg-[var(--surface)] px-3 py-1 font-mono text-[11px] uppercase
-                     tracking-[0.18em] text-[var(--muted)]"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-          github × pokedex
-        </span>
+      <div className="rise relative w-full max-w-2xl">
+        <section className="gba-panel px-5 py-7 sm:px-9 sm:py-10">
+          <span
+            className="inline-flex items-center gap-2 border-2 border-[var(--border)]
+                       bg-[var(--surface-raised)] px-2.5 py-1 font-display text-[0.5rem]
+                       uppercase tracking-wider text-[var(--muted)]"
+          >
+            <span className="h-2 w-2 bg-[var(--accent)]" />
+            {COPY.brand.kicker}
+          </span>
 
-        <h1 className="mt-6 text-6xl font-bold leading-[0.95] tracking-tight sm:text-7xl">
-          Poke
-          <span className="text-[var(--accent)]">Git</span>
-        </h1>
+          <h1 className="mt-6">
+            <span className="sr-only">{COPY.brand.wordmark}</span>
+            <span aria-hidden>
+              <Wordmark size="hero" />
+            </span>
+          </h1>
 
-        <p className="mt-4 max-w-md text-base leading-relaxed text-[var(--muted)]">
-          Every public GitHub profile is a species with observable habits. Enter
-          a username to see its base stats, typing, ability and Pokedex entry.
-        </p>
+          <p className="mt-6 max-w-lg text-sm leading-[1.9] text-[var(--muted)]">
+            {COPY.brand.tagline}
+          </p>
 
-        <div className="mt-8">
-          <UsernameForm autoFocus />
-        </div>
+          <div className="mt-8">
+            <UsernameForm autoFocus />
+          </div>
+        </section>
 
-        <dl className="mt-14 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
-          {HIGHLIGHTS.map((item) => (
-            <div key={item.label} className="border-t border-[var(--border)] pt-3">
-              <dt className="text-sm font-medium text-[var(--foreground)]">
-                {item.label}
-              </dt>
-              <dd className="mt-0.5 text-xs leading-relaxed text-[var(--muted)]">
-                {item.detail}
-              </dd>
+        {/* Lighter treatment than the hero panel: this is a spec list, not chrome. */}
+        <dl className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {COPY.home.highlights.map((item) => (
+            <div
+              key={item.label}
+              className="dex-panel flex gap-3 px-4 py-3 backdrop-blur-[2px]"
+            >
+              <DexBall size={16} className="mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <dt className="font-display text-[0.55rem] leading-relaxed text-[var(--foreground)]">
+                  {item.label}
+                </dt>
+                <dd className="mt-1.5 text-xs leading-relaxed text-[var(--muted)]">
+                  {item.detail}
+                </dd>
+              </div>
             </div>
           ))}
         </dl>
       </div>
 
-      <footer className="relative mt-20 font-mono text-[11px] text-[var(--muted)]">
-        no login · public data only · nothing stored
+      <footer className="relative mt-12 text-[11px] tracking-wide text-[var(--muted)]">
+        {COPY.brand.footer}
       </footer>
     </main>
   );

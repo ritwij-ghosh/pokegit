@@ -1,29 +1,39 @@
 import Link from "next/link";
 
+import { DexBall } from "@/components/DexBall";
 import UsernameForm from "@/components/UsernameForm";
+import { COPY } from "@/lib/copy";
 
 export default function NotFound() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-5 px-6 py-20 text-center">
-      <span className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
-        no entry found
-      </span>
-      <h1 className="text-3xl font-semibold">
-        There is no GitHub profile by that name.
-      </h1>
-      <p className="max-w-md text-sm leading-relaxed text-[var(--muted)]">
-        Check the spelling, or try a different username. PokeGit only reads
-        public profiles.
-      </p>
-      <div className="mt-2 flex w-full max-w-md justify-center">
-        <UsernameForm />
-      </div>
-      <Link
-        href="/"
-        className="font-mono text-xs text-[var(--muted)] transition hover:text-[var(--foreground)]"
-      >
-        ← back to search
-      </Link>
+    <main className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
+      <section className="gba-panel tile-route-faint w-full max-w-lg px-6 py-9 text-center sm:px-8">
+        <div className="flex justify-center">
+          <DexBall size={44} />
+        </div>
+
+        <p className="mt-5 font-display text-[0.5rem] uppercase tracking-wider text-[var(--muted)]">
+          {COPY.notFound.kicker}
+        </p>
+        <h1 className="mt-3 font-display text-[0.95rem] leading-relaxed text-[var(--foreground)]">
+          {COPY.notFound.title}
+        </h1>
+        <p className="mx-auto mt-4 max-w-sm text-xs leading-[1.9] text-[var(--muted)]">
+          {COPY.notFound.detail}
+        </p>
+
+        <div className="mt-7 flex justify-center">
+          <UsernameForm />
+        </div>
+
+        <Link
+          href="/"
+          className="mt-6 inline-block text-[11px] text-[var(--muted)] underline
+                     decoration-dotted underline-offset-4 transition hover:text-[var(--accent)]"
+        >
+          {COPY.notFound.back}
+        </Link>
+      </section>
     </main>
   );
 }

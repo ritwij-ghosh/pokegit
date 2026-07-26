@@ -1,4 +1,5 @@
 import { POKEMON_TYPE_COLORS } from "@/lib/language-types";
+import { readableInk } from "@/lib/theme-accent";
 import type { PokemonType } from "@/lib/types";
 
 /**
@@ -96,14 +97,48 @@ export function TypeSymbol({
   );
 }
 
+/**
+ * Square-cornered badge with a hard offset shadow, for the profile hero.
+ *
+ * Filled with the type color rather than tinted with it: a tint would have to
+ * pick a text color that works on both the cream and navy panels, and half the
+ * type colors (Electric, Rock, Ice) fail on one or the other.
+ */
 export function TypeBadge({ type }: { type: PokemonType }) {
   const color = POKEMON_TYPE_COLORS[type];
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full py-1 pl-1 pr-3 text-xs font-semibold tracking-wide"
-      style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}
+      className="inline-flex items-center gap-2 py-1 pl-1 pr-2.5 font-display text-[0.55rem] uppercase"
+      style={{
+        background: color,
+        color: readableInk(color),
+        border: "2px solid var(--ink)",
+        boxShadow: "2px 2px 0 0 var(--shadow-hard)",
+      }}
     >
-      <TypeSymbol type={type} size={18} />
+      <TypeSymbol type={type} size={16} />
+      {type}
+    </span>
+  );
+}
+
+/**
+ * Compact type accent for dense rows (the language list). Sits alongside the
+ * language name rather than replacing it - the label is still the source of
+ * truth, the chip is just the color cue.
+ */
+export function TypeChip({ type }: { type: PokemonType }) {
+  const color = POKEMON_TYPE_COLORS[type];
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1 px-1.5 py-px text-[10px] uppercase tracking-wider"
+      style={{
+        background: color,
+        color: readableInk(color),
+        border: "1px solid var(--border)",
+      }}
+    >
+      <TypeSymbol type={type} size={11} monochrome className="opacity-80" />
       {type}
     </span>
   );

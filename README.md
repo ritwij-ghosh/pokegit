@@ -57,12 +57,71 @@ lib/abilities.ts         25-ability decision tree, first match wins
 lib/ability-thresholds.ts  every numeric cutoff, in one place
 lib/language-types.ts    language -> linguist color + Pokemon type
 lib/card-palette.ts      linguist color -> usable card palette
+lib/theme-accent.ts      linguist color -> contrast-solved per-theme accent
 lib/flavor-text.ts       Claude call + deterministic fallback
 lib/profile.ts           assembles all of the above
+lib/copy.ts              every themed string in the UI
+lib/prefs.ts             theme + sound persistence (localStorage)
+lib/sfx.ts               synthesized WebAudio blip and chime
 ```
 
 Colors are never invented. `design-reference/language-colors.json` is a dump of
 GitHub's linguist `languages.yml` and is the only source of hex values.
+
+## Theme
+
+The UI is a GBA-era handheld pastiche. Two palettes ship, both defined as
+Tailwind v4 `@theme` tokens in `app/globals.css`:
+
+- **Authentic** — warm cream panels, forest-green accent.
+- **Dark** — deep navy panels, the same saturated red/blue/yellow pops.
+
+The choice persists in `localStorage` and is applied before first paint by an
+inline script in `app/layout.tsx`, so reloads never flash the other palette.
+Without a stored choice the OS `prefers-color-scheme` wins.
+
+Two conventions keep the app from feeling like two UIs stitched together:
+
+| Class | Used for | Treatment |
+|---|---|---|
+| `.gba-panel` / `.gba-btn` / `.gba-field` | chrome: nav, buttons, dialogue boxes, empty and loading states | 3px ink border, hard offset shadow, square corners |
+| `.dex-panel` | data: stat rows, metrics, language lists | 2px subtle border, no shadow — density over drama |
+
+Tile texture (`.tile-route`) is scoped to the landing hero and the profile
+hero only. It never sits behind dense text.
+
+A profile's identity color comes from its top language, and linguist hexes are
+picked to read as 10px dots on github.com — not as text on cream or navy.
+`lib/theme-accent.ts` re-solves lightness per theme until the color clears
+4.5:1 against the worst-case background for that palette, preserving hue so
+JavaScript still reads yellow and Ruby still reads red.
+
+### Fonts
+
+Both pixel faces are Google Fonts under the SIL Open Font License, loaded via
+`next/font/google`:
+
+- **Press Start 2P** (`font-display`) — wordmark, headings, nav and button
+  labels. Sized small everywhere; it is unusable at body sizes.
+- **Silkscreen** (`font-sans` / `font-mono`) — body, metrics, flavor text.
+
+Cabin stays scoped to the card, which is a trading-card pastiche rather than
+app chrome.
+
+### Sound
+
+Off by default, toggled from the speaker button in the header, persisted in
+`localStorage`. Both effects are synthesized from oscillators in `lib/sfx.ts` —
+no audio files, no sampled game audio. A single delegated click listener in
+`components/SoundToggle.tsx` handles the blip for every button and link.
+
+### Original artwork only
+
+No Nintendo or Game Freak assets are reproduced. Decorative marks are objects,
+not characters: `components/DexBall.tsx` is an original capture-ball motif with
+a diamond latch and a theme-colored top half, deliberately distinct from the
+Poke Ball design. The 18 type glyphs in `components/TypeSymbol.tsx` are drawn
+from scratch on a 24x24 grid.
 
 ## Tuning knobs
 

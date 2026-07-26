@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PokeGit
 
-## Getting Started
+Turn any public GitHub profile into a Pokedex entry and a Pokemon-style
+trading card. Built to the spec in [`plan.md`](./plan.md).
 
-First, run the development server:
+Two deliverables per username:
+
+1. **Pokedex entry page** (`/[username]`) — six base stats plus BST, dual
+   typing, one of 25 abilities, and an LLM-written flavor entry.
+2. **Card** (`components/PokeCard.tsx`) — v1 is aesthetics-first: name, single
+   type, HP, a language-derived palette, avatar with upload override, and two
+   structurally-real placeholder moves.
+
+## Getting started
 
 ```bash
+npm install
+cp .env.local.example .env.local   # then fill in the two keys
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Required | Purpose |
+|---|---|---|
+| `GITHUB_TOKEN` | yes | Server-side GitHub API calls. Only needs public read scope. |
+| `ANTHROPIC_API_KEY` | no | Generates the Pokedex flavor text. Without it the app falls back to a deterministic entry built from the same signals, marked "offline text" in the UI. |
+| `ANTHROPIC_MODEL` | no | Defaults to `claude-sonnet-4-5`. |
 
-## Learn More
+There is no user OAuth. Lookups are anonymous and every GitHub call runs
+server-side against a single app-owned token.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server. |
+| `npm run build` | Production build. |
+| `npm run typecheck` | `tsc --noEmit`. |
+| `npm run lint` | ESLint. |
+| `npm run inspect -- <user> [user...]` | Prints the full computed profile for real usernames — the harness for retuning stat curves and ability thresholds. |
+| `node scripts/shot.mjs <path> <out.png> [w] [h] [selector]` | Screenshots a running dev server, for card iteration. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`/design-lab` is an unlinked dev route that renders the card across a spread of
+languages, so palette changes can be checked against greys, neons and dark
+colors in one pass.
 
-## Deploy on Vercel
+## Architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+lib/github.ts            GraphQL (contribution calendar, year aggregates)
+                         + REST (repos, languages, commit timestamps)
+lib/stats.ts             derived signals, log-curve stat normalization, typing
+lib/abilities.ts         25-ability decision tree, first match wins
+lib/ability-thresholds.ts  every numeric cutoff, in one place
+lib/language-types.ts    language -> linguist color + Pokemon type
+lib/card-palette.ts      linguist color -> usable card palette
+lib/flavor-text.ts       Claude call + deterministic fallback
+lib/profile.ts           assembles all of the above
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Colors are never invented. `design-reference/language-colors.json` is a dump of
+GitHub's linguist `languages.yml` and is the only source of hex values.
+
+## Tuning knobs
+
+Both of these are expected to move once real distributions are visible
+(`plan.md` section 11):
+
+- **Stat curves** — `STAT_CURVES` in `lib/stats.ts`. Each stat has a `ceiling`
+  (raw value that saturates the stat) and a `gamma` (curve shaping). They were
+  solved against three reference profiles: a heavy OSS maintainer at ~200-230,
+  a casual contributor at ~60-100, and a near-inactive account at ~20-40.
+- **Ability thresholds** — `lib/ability-thresholds.ts`. Ability *order* is
+  load-bearing and lives in `lib/abilities.ts`; earlier entries shadow later
+  ones by design.
+
+## Not in v1
+
+Deferred to v2, with layout slots already reserved on the card: real moves
+derived from insights, weakness, resistance, retreat cost, stage/evolution
+line, rarity symbol, card number. Satori-based PNG export for sharing is the
+other v2 item — the card is a self-contained component to keep that seam clean.

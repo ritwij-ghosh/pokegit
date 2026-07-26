@@ -1,0 +1,382 @@
+/*
+ * PokeCard styles.
+ *
+ * Everything is sized off `--cw` (the card's rendered width in px) so the card
+ * scales as one piece instead of drifting apart at different sizes. Proportions
+ * are measured off the reference cards in /design-reference: a 63x88 frame, a
+ * ~4% colored border, a name/HP header row, an art window occupying just over
+ * half the width in height, a thin info bar, the attack block, then the
+ * weakness/resistance/retreat bar and the credit line.
+ */
+
+.pokecard {
+  --radius: calc(var(--cw) * 0.036);
+  --frame: calc(var(--cw) * 0.043);
+
+  position: relative;
+  width: var(--cw);
+  aspect-ratio: 63 / 88;
+  padding: var(--frame);
+  border-radius: var(--radius);
+  font-family: var(--font-card), "Gill Sans", "Trebuchet MS", sans-serif;
+  color: var(--card-ink);
+  /*
+   * The border stays gold across every card. It is the single strongest
+   * "this is a Pokemon card" cue in all three references, and deriving it from
+   * the language hue instead made every card read monochrome against its own
+   * body. The language color drives the body and banner instead, which is what
+   * plan.md section 7 actually asks for. A low-opacity wash of the language
+   * accent keeps the frames from being identical card to card.
+   */
+  background:
+    radial-gradient(
+      140% 100% at 50% 100%,
+      color-mix(in srgb, var(--card-accent) 100%, transparent 72%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      158deg,
+      #fbeaa0 0%,
+      #f3d45c 26%,
+      #e8c043 60%,
+      #d9a92f 100%
+    );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 calc(var(--cw) * 0.03) calc(var(--cw) * 0.08) rgba(0, 0, 0, 0.45),
+    0 calc(var(--cw) * 0.005) calc(var(--cw) * 0.015) rgba(0, 0, 0, 0.35);
+  user-select: none;
+}
+
+/* Faint holo sheen across the whole card. */
+.pokecard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0) 26%,
+    rgba(255, 255, 255, 0) 62%,
+    rgba(255, 255, 255, 0.14) 78%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  mix-blend-mode: screen;
+}
+
+.pokecard__body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: calc(var(--cw) * 0.026) calc(var(--cw) * 0.03) calc(var(--cw) * 0.022);
+  border-radius: calc(var(--radius) * 0.62);
+  background:
+    radial-gradient(
+      110% 55% at 50% 0%,
+      color-mix(in srgb, var(--card-face) 100%, white 45%) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      176deg,
+      var(--card-face) 0%,
+      var(--card-face) 32%,
+      var(--card-face-deep) 78%,
+      color-mix(in srgb, var(--card-face-deep) 100%, black 14%) 100%
+    );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--card-deep) 100%, transparent 25%),
+    0 calc(var(--cw) * 0.004) calc(var(--cw) * 0.012) rgba(0, 0, 0, 0.22) inset;
+}
+
+/* Fine grain, so large flat areas read as printed stock rather than as CSS. */
+.pokecard__body {
+  position: relative;
+  isolation: isolate;
+}
+
+.pokecard__body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --- header ------------------------------------------------------------- */
+
+.pokecard__header {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--cw) * 0.02);
+  padding: 0 calc(var(--cw) * 0.006) calc(var(--cw) * 0.012);
+}
+
+.pokecard__stage {
+  position: absolute;
+  top: calc(var(--cw) * -0.008);
+  left: 0;
+  padding: calc(var(--cw) * 0.004) calc(var(--cw) * 0.018);
+  border-radius: calc(var(--cw) * 0.01);
+  font-size: calc(var(--cw) * 0.021);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--card-ink) 100%, transparent 25%);
+  background: color-mix(in srgb, var(--card-frame) 100%, white 35%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-deep) 100%, transparent 65%);
+}
+
+.pokecard__name-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding-top: calc(var(--cw) * 0.036);
+}
+
+.pokecard__name {
+  display: block;
+  overflow: hidden;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.012em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65),
+    0 calc(var(--cw) * 0.003) calc(var(--cw) * 0.006) rgba(0, 0, 0, 0.18);
+}
+
+.pokecard__hp {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--cw) * 0.012);
+  padding-bottom: calc(var(--cw) * 0.002);
+}
+
+.pokecard__hp-label {
+  font-size: calc(var(--cw) * 0.026);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--card-ink) 100%, transparent 30%);
+}
+
+.pokecard__hp-value {
+  font-size: calc(var(--cw) * 0.075);
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* --- art window --------------------------------------------------------- */
+
+.pokecard__art {
+  position: relative;
+  aspect-ratio: 1.44 / 1;
+  border-radius: calc(var(--cw) * 0.012);
+  overflow: hidden;
+  /* Silver bevel, the way the reference cards frame their art. */
+  background: linear-gradient(
+    150deg,
+    #fdfdfd 0%,
+    #c9ccd2 22%,
+    #8e939c 48%,
+    #cfd2d8 74%,
+    #f2f3f5 100%
+  );
+  padding: calc(var(--cw) * 0.009);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--card-deep) 100%, transparent 60%),
+    0 calc(var(--cw) * 0.006) calc(var(--cw) * 0.016) rgba(0, 0, 0, 0.28);
+}
+
+.pokecard__art-inner {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  border-radius: calc(var(--cw) * 0.004);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--card-accent) 100%, white 55%) 0%,
+    color-mix(in srgb, var(--card-accent) 100%, black 22%) 100%
+  );
+}
+
+.pokecard__art-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Vignette so avatars of any brightness sit into the frame. */
+.pokecard__art-inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(115% 90% at 50% 32%, transparent 42%, rgba(0, 0, 0, 0.3) 100%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0%, transparent 32%);
+}
+
+/* --- info bar under the art -------------------------------------------- */
+
+.pokecard__infobar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--cw) * 0.022);
+  margin-top: calc(var(--cw) * 0.014);
+  padding: calc(var(--cw) * 0.008) calc(var(--cw) * 0.02);
+  border-radius: calc(var(--cw) * 0.006);
+  font-size: calc(var(--cw) * 0.0215);
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--card-ink) 100%, transparent 28%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.32) 100%
+  );
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-deep) 100%, transparent 78%);
+}
+
+.pokecard__infobar b {
+  font-weight: 700;
+  color: color-mix(in srgb, var(--card-ink) 100%, transparent 8%);
+}
+
+/* --- moves -------------------------------------------------------------- */
+
+.pokecard__moves {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-evenly;
+  margin-top: calc(var(--cw) * 0.01);
+}
+
+.pokecard__rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--card-deep) 100%, transparent 55%) 12%,
+    color-mix(in srgb, var(--card-deep) 100%, transparent 55%) 88%,
+    transparent
+  );
+}
+
+.pokecard__move-head {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--cw) * 0.018);
+}
+
+.pokecard__pips {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--cw) * 0.007);
+  flex-shrink: 0;
+}
+
+.pokecard__move-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: calc(var(--cw) * 0.049);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.005em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pokecard__move-damage {
+  flex-shrink: 0;
+  font-size: calc(var(--cw) * 0.058);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.pokecard__move-text {
+  margin-top: calc(var(--cw) * 0.007);
+  padding: 0 calc(var(--cw) * 0.012);
+  font-size: calc(var(--cw) * 0.0275);
+  line-height: 1.26;
+  color: color-mix(in srgb, var(--card-ink) 100%, transparent 12%);
+}
+
+/* --- weakness / resistance / retreat ------------------------------------ */
+
+.pokecard__footerbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  margin-top: calc(var(--cw) * 0.014);
+  padding: calc(var(--cw) * 0.009) calc(var(--cw) * 0.014);
+  border-radius: calc(var(--cw) * 0.006);
+  font-size: calc(var(--cw) * 0.0215);
+  color: color-mix(in srgb, var(--card-ink) 100%, transparent 32%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0.24) 100%
+  );
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-deep) 100%, transparent 80%);
+}
+
+.pokecard__footerbar > div {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--cw) * 0.012);
+}
+
+.pokecard__footerbar > div + div {
+  padding-left: calc(var(--cw) * 0.018);
+  border-left: 1px solid color-mix(in srgb, var(--card-deep) 100%, transparent 82%);
+}
+
+.pokecard__slot {
+  display: inline-block;
+  min-width: calc(var(--cw) * 0.042);
+  height: calc(var(--cw) * 0.03);
+  border-radius: calc(var(--cw) * 0.004);
+  border: 1px dashed color-mix(in srgb, var(--card-deep) 100%, transparent 68%);
+}
+
+/* --- credits ------------------------------------------------------------ */
+
+.pokecard__credits {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--cw) * 0.02);
+  margin-top: calc(var(--cw) * 0.012);
+  padding: 0 calc(var(--cw) * 0.008);
+  font-size: calc(var(--cw) * 0.0205);
+  color: color-mix(in srgb, var(--card-ink) 100%, transparent 42%);
+}
+
+.pokecard__credits b {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--card-ink) 100%, transparent 22%);
+}
+
+.pokecard__setline {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--cw) * 0.012);
+  font-variant-numeric: tabular-nums;
+}

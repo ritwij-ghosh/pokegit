@@ -1,47 +1,28 @@
 /**
- * Pokedex flavor text generation (plan.md section 6). Server-side only.
+ * Pokédex flavor text via Groq (generate-once; see pokedex-entries-implementation.md).
  *
- * One Claude call per lookup. The model receives a pre-summarized digest of
- * derived signals, never a raw API dump, so every sentence it writes can be
- * traced back to a real computed number.
- *
- * PROMPT IS A V1 DRAFT. plan.md section 6 explicitly expects this to be
- * refined once real output is visible across a range of profiles. Treat the
- * system prompt below as the thing most likely to change.
+ * Generation is triggered only when a profile is first recorded — never on every
+ * page view. This module owns the prompt + API call; persistence lives in
+ * lib/pokedex-entries.ts.
  */
 
 import "server-only";
 
+import { withGroqSpacing } from "@/lib/rate-limit";
 import type { PokeGitProfile } from "@/lib/types";
 
-const ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
-const DEFAULT_MODEL = "claude-sonnet-4-5";
+const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+const DEFAULT_MODEL = "llama-3.1-8b-instant";
 
-const SYSTEM_PROMPT = `You write Pokedex entries for GitHub developers.
+const SYSTEM_PROMPT = `You are writing a short, fun "Pokédex entry" style description for a GitHub developer profile, in the tone of a Pokémon Pokédex (playful, matter-of-fact, slightly mysterious).
 
-Write 2 or 3 sentences. Never more than 3. Never fewer than 2.
-
-Voice: a real Pokedex entry. Concise, observational, third person, matter of
-fact. You are describing an organism's observed behavior in the field, not
-reviewing a person. Refer to the subject as "this developer", "it", or by
-behavior — never by username, never as "you".
-
-Blend one behavioral observation with an implied strength or weakness. The
-weakness should be implied by the behavior itself, not stated as criticism.
-
-Reference examples for cadence:
-  "Known to spend late nights debugging Python scripts."
-  "Observed to explosively make commits, then disappear until another explosion."
+Write ONE short paragraph (2-3 sentences max, under 60 words) describing this developer as if they were a creature observed in the wild. Refer to the subject as "this developer", "it", or by behavior — never by username, never as "you".
 
 Hard rules:
-- No praise or hype language. Not "impressive", "prolific", "incredible",
-  "remarkable", "powerhouse", "legendary".
+- Do not reference real Pokémon names or copyrighted characters. Keep it purely inspired by the tone/format, not the IP.
+- No praise or hype language. Not "impressive", "prolific", "incredible", "remarkable", "powerhouse", "legendary".
 - No exclamation points.
-- Descriptive, not evaluative. Report what happens, do not rate it.
-- Every sentence must be grounded in a specific signal from the data given to
-  you. Do not invent behavior the data does not support.
-- Do not quote raw numbers verbatim in more than one sentence; translate them
-  into observed behavior.
+- Every sentence must be grounded in a specific signal from the data given to you. Do not invent behavior the data does not support.
 - Output only the entry text. No preamble, no quotation marks, no markdown.`;
 
 /**
@@ -112,6 +93,22 @@ export function buildSignalDigest(profile: PokeGitProfile) {
   };
 }
 
+function buildUserPrompt(profile: PokeGitProfile): string {
+  const created = profile.profile.createdAt.slice(0, 10);
+  const description = profile.profile.bio?.trim() || "none provided";
+
+  return `Repo/profile name: ${profile.profile.login}
+Primary language: ${profile.typing.primaryLanguage} (${profile.typing.primary}-type)
+Description: ${description}
+Stars: ${profile.raw.totalStars}
+First seen: ${created}
+
+Signal digest (ground every sentence in this data):
+${JSON.stringify(buildSignalDigest(profile), null, 2)}
+
+Write the Pokédex entry now. Return only the entry text.`;
+}
+
 /** Trim to at most three sentences, in case the model overruns the cap. */
 function enforceSentenceCap(text: string, max = 3): string {
   const cleaned = text
@@ -124,7 +121,7 @@ function enforceSentenceCap(text: string, max = 3): string {
 }
 
 /**
- * Deterministic entry used when no API key is configured or the call fails.
+ * Deterministic entry used when no API key is configured.
  * Grounded in the same real signals, just without the model's phrasing.
  */
 export function fallbackFlavorText(profile: PokeGitProfile): string {
@@ -175,61 +172,56 @@ export function fallbackFlavorText(profile: PokeGitProfile): string {
   return parts.join(" ");
 }
 
-export async function generateFlavorText(
-  profile: PokeGitProfile,
-): Promise<{ text: string; source: "llm" | "fallback" }> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey || apiKey.startsWith("sk-ant-your_key")) {
-    return { text: fallbackFlavorText(profile), source: "fallback" };
-  }
+export function isGroqConfigured(): boolean {
+  const key = process.env.GROQ_API_KEY;
+  return Boolean(key && !key.startsWith("gsk_your_"));
+}
 
-  const digest = buildSignalDigest(profile);
+/**
+ * Call Groq once. On any failure returns null — caller leaves the DB entry NULL
+ * and shows the pending placeholder (no retry cascade).
+ */
+export async function generateFlavorTextWithGroq(
+  profile: PokeGitProfile,
+): Promise<string | null> {
+  if (!isGroqConfigured()) return null;
 
   try {
-    const response = await fetch(ANTHROPIC_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      cache: "no-store",
-      body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || DEFAULT_MODEL,
-        max_tokens: 200,
-        temperature: 0.7,
-        system: SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content:
-              "Write the Pokedex entry for the developer described by this data.\n\n" +
-              JSON.stringify(digest, null, 2),
-          },
-        ],
+    const response = await withGroqSpacing(async () =>
+      fetch(GROQ_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+        cache: "no-store",
+        body: JSON.stringify({
+          model: process.env.GROQ_MODEL || DEFAULT_MODEL,
+          max_tokens: 150,
+          temperature: 0.9,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: buildUserPrompt(profile) },
+          ],
+        }),
       }),
-    });
+    );
 
     if (!response.ok) {
       console.error(
-        `[flavor-text] Anthropic responded ${response.status}; using fallback.`,
+        `[flavor-text] Groq responded ${response.status}; leaving entry unset.`,
       );
-      return { text: fallbackFlavorText(profile), source: "fallback" };
+      return null;
     }
 
     const payload = (await response.json()) as {
-      content?: { type: string; text?: string }[];
+      choices?: { message?: { content?: string } }[];
     };
-    const raw = payload.content
-      ?.filter((block) => block.type === "text")
-      .map((block) => block.text ?? "")
-      .join(" ")
-      .trim();
-
-    if (!raw) return { text: fallbackFlavorText(profile), source: "fallback" };
-    return { text: enforceSentenceCap(raw), source: "llm" };
+    const raw = payload.choices?.[0]?.message?.content?.trim();
+    if (!raw) return null;
+    return enforceSentenceCap(raw);
   } catch (error) {
-    console.error("[flavor-text] call failed; using fallback.", error);
-    return { text: fallbackFlavorText(profile), source: "fallback" };
+    console.error("[flavor-text] Groq call failed; leaving entry unset.", error);
+    return null;
   }
 }

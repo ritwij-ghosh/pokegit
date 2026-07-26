@@ -1,14 +1,25 @@
 /**
  * Assembles a complete PokeGit profile: fetch -> derive -> normalize ->
- * classify. Server-side only.
+ * classify -> select moves. Server-side only.
+ *
+ * The card identity (stats, typing, ability, move ids) is computed together
+ * and cached for an hour. Move *ids* are what get persisted — name, power,
+ * and description are always hydrated from MOVE_BANK on read so copy edits
+ * apply without waiting for the TTL.
  */
 
 import "server-only";
 
+import { unstable_cache } from "next/cache";
+
 import { resolveAbility } from "@/lib/abilities";
 import { fetchGitHubData } from "@/lib/github";
+import { resolveMoves, selectMovesForProfile } from "@/lib/moves";
 import { computeBaseStats, computeTyping, deriveSignals } from "@/lib/stats";
 import type { PokeGitProfile } from "@/lib/types";
+
+/** Shape stored in unstable_cache — moves are ids only. */
+type CachedPokeGitProfile = Omit<PokeGitProfile, "moves">;
 
 function buildCaveats(
   data: Awaited<ReturnType<typeof fetchGitHubData>>,
@@ -49,20 +60,21 @@ function buildCaveats(
   return caveats;
 }
 
-export async function getPokeGitProfile(
-  username: string,
-): Promise<PokeGitProfile> {
+async function buildCachedProfile(username: string): Promise<CachedPokeGitProfile> {
   const raw = await fetchGitHubData(username);
   const signals = deriveSignals(raw);
   const stats = computeBaseStats(raw, signals);
   const typing = computeTyping(signals);
   const ability = resolveAbility({ signals, raw });
+  const selected = selectMovesForProfile(raw, signals);
+  const moveIds: [string, string] = [selected[0].id, selected[1].id];
 
   return {
     profile: raw.profile,
     stats,
     typing,
     ability,
+    moveIds,
     signals,
     raw: {
       totalContributions: raw.contributions.totalContributions,
@@ -79,4 +91,35 @@ export async function getPokeGitProfile(
     },
     caveats: buildCaveats(raw, signals.timeOfDay.sampleSize),
   };
+}
+
+function hydrateProfile(cached: CachedPokeGitProfile): PokeGitProfile {
+  return {
+    ...cached,
+    moves: resolveMoves(cached.moveIds),
+  };
+}
+
+export async function getPokeGitProfile(
+  username: string,
+): Promise<PokeGitProfile> {
+  const login = username.trim().replace(/^@/, "").toLowerCase();
+
+  // unstable_cache only works inside a Next.js request/runtime. Scripts and
+  // one-off tooling fall through to a direct build.
+  try {
+    const cached = await unstable_cache(
+      () => buildCachedProfile(login),
+      // v3: cache move ids only; hydrate name/description from MOVE_BANK on read.
+      ["pokegit-profile", "v3", login],
+      { revalidate: 3600, tags: [`profile:${login}`] },
+    )();
+    return hydrateProfile(cached);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("incrementalCache missing")) {
+      return hydrateProfile(await buildCachedProfile(login));
+    }
+    throw error;
+  }
 }

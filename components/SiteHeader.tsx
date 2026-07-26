@@ -8,7 +8,7 @@ import Wordmark from "@/components/Wordmark";
 export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b-[3px] border-[var(--ink)] bg-[var(--surface)]">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"
           className="transition-opacity hover:opacity-80"

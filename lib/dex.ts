@@ -1,7 +1,14 @@
 /**
- * A stable, meaningless-but-consistent three-digit dex number per username.
- * Purely decorative — it exists so the card and entry page have the "NO. 006"
- * line that every real card carries.
+ * Format a sequential Pokédex entry number for display (NO. 001, NO. 1000, …).
+ * Pads to three digits; values ≥1000 render in full.
+ */
+export function formatDexNumber(entryNumber: number): string {
+  return String(entryNumber).padStart(3, "0");
+}
+
+/**
+ * Decorative fallback when Supabase is offline / for design-lab samples.
+ * Stable per username but not globally unique or insertion-ordered.
  */
 export function dexNumber(login: string): string {
   let hash = 2166136261;
@@ -9,5 +16,5 @@ export function dexNumber(login: string): string {
     hash ^= login.charCodeAt(i);
     hash = Math.imul(hash, 16777619);
   }
-  return String((Math.abs(hash) % 998) + 1).padStart(3, "0");
+  return formatDexNumber((Math.abs(hash) % 998) + 1);
 }

@@ -8,9 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "inspect": "tsx --conditions=react-server --env-file=.env.local scripts/inspect-profile.ts"
+    "inspect": "tsx --conditions=react-server --env-file=.env.local scripts/inspect-profile.ts",
+    "test:moves": "tsx scripts/test-moves.ts",
+    "test:pokedex": "tsx --conditions=react-server --env-file=.env.local scripts/test-pokedex-cache.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.8",
+    "html-to-image": "^1.11.13",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",

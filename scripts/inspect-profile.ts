@@ -25,6 +25,12 @@ async function inspect(username: string) {
       `   [${p.typing.primaryLanguage}${p.typing.secondaryLanguage ? ` + ${p.typing.secondaryLanguage}` : ""}] ${p.typing.color}`,
   );
   console.log(`ABILITY   ${p.ability.name}`);
+  console.log(
+    `MOVES     ${p.moveIds[0]} → ${p.moves[0].name} (${p.moves[0].type}, ${p.moves[0].power}, ${p.moves[0].category}/${p.moves[0].signal} t${p.moves[0].tier})`,
+  );
+  console.log(
+    `          ${p.moveIds[1]} → ${p.moves[1].name} (${p.moves[1].type}, ${p.moves[1].power}, ${p.moves[1].category}/${p.moves[1].signal} t${p.moves[1].tier})`,
+  );
 
   console.log("\nBASE STATS");
   console.log(
@@ -72,6 +78,9 @@ async function inspect(username: string) {
   for (const lang of s.languages.slice(0, 6)) {
     console.log(`     ${pct(lang.share).padStart(4)}  ${lang.name} -> ${lang.pokemonType}`);
   }
+  console.log(
+    `  commit messages (n=${s.commitMessageSampleSize})  avg subject ${s.avgCommitMessageLength.toFixed(1)} chars`,
+  );
 
   if (p.caveats.length) {
     console.log("\nCAVEATS");

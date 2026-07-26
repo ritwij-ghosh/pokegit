@@ -1,0 +1,110 @@
+/*
+ * Offscreen 9:16 story canvas used only for export. Sized in device pixels
+ * (1080×1920) so the captured PNG matches Instagram / Stories dimensions.
+ */
+
+.card-story {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 1080px;
+  height: 1920px;
+  padding: 120px 72px 100px;
+  color: #f4f0e4;
+  background:
+    radial-gradient(
+      58% 42% at 50% 46%,
+      color-mix(in srgb, var(--story-glow) 34%, transparent) 0%,
+      transparent 72%
+    ),
+    radial-gradient(120% 80% at 50% 100%, #1a1430 0%, #07060c 55%, #030208 100%);
+  font-family: var(--font-silkscreen), ui-monospace, monospace;
+}
+
+.card-story__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.card-story__wordmark {
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 52px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+}
+
+.card-story__wordmark-tail {
+  color: #4ade80;
+}
+
+.card-story__tagline {
+  font-size: 18px;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-transform: uppercase;
+  color: rgba(244, 240, 228, 0.72);
+}
+
+.card-story__stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 36px 0;
+}
+
+.card-story__glow {
+  position: absolute;
+  inset: 18% 12%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--story-glow) 45%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.card-story__card {
+  position: relative;
+  z-index: 1;
+  width: min(640px, 78%);
+  height: auto;
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 40px 80px rgba(0, 0, 0, 0.55);
+}
+
+.card-story__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+}
+
+.card-story__ability {
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 28px;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
+  text-transform: uppercase;
+  color: rgba(244, 240, 228, 0.92);
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.card-story__cta {
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4ade80;
+}

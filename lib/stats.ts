@@ -282,6 +282,13 @@ export function deriveSignals(raw: RawGitHubData): DerivedSignals {
       raw.contributions.totalContributions,
     ),
     medianIssueTurnaroundHours: medianTurnaroundHours(raw.issueSamples),
+
+    avgCommitMessageLength: (() => {
+      const lengths = raw.commitMessageLengths;
+      if (lengths.length === 0) return 0;
+      return lengths.reduce((a, b) => a + b, 0) / lengths.length;
+    })(),
+    commitMessageSampleSize: raw.commitMessageLengths.length,
   };
 }
 

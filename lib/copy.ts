@@ -13,7 +13,7 @@ export const COPY = {
     kicker: "github x pokedex",
     tagline:
       "Every public GitHub profile is a species with observable habits. Enter a username to read its base stats, typing, ability and Pokedex entry.",
-    footer: "no login / public data only / nothing stored",
+    footer: "no login / public data only / entries cached once",
   },
 
   home: {
@@ -63,10 +63,13 @@ export const COPY = {
     ageSuffix: "years in the wild",
     dexPrefix: "NO.",
     bstLabel: "Base stat total",
+    bstHint: "Sum of the six base stats. Caps at 1530 (6 × 255).",
     entryLabel: "Pokedex entry",
+    pendingBadge: "scanning",
+    pendingEntry: "Pokédex data pending...",
     offlineBadge: "offline text",
     offlineHint:
-      "Set ANTHROPIC_API_KEY in .env.local to generate this with the model.",
+      "Set GROQ_API_KEY (and Supabase) in .env.local to generate and cache this with the model.",
     viewOnGithub: "view on github",
     caveatsTitle: "How this was measured",
     panels: {
@@ -75,6 +78,16 @@ export const COPY = {
       metrics: "Scouting metrics",
       languages: "Language distribution",
     },
+    statHints: {
+      hp: "Past-year contribution count, log-normalized onto 1–255.",
+      attack: "Past-year commit count, log-normalized onto 1–255.",
+      defense: "Code reviews given, log-normalized onto 1–255.",
+      spAttack:
+        "Stars earned plus top-repo stars (top repo counted twice), log-normalized onto 1–255.",
+      spDefense: "Follower count, log-normalized onto 1–255.",
+      speed:
+        "Issue volume boosted by fast turnaround, log-normalized onto 1–255.",
+    },
   },
 
   prefs: {
@@ -82,5 +95,23 @@ export const COPY = {
     themeToDark: "Switch to Dark (night) theme",
     soundOn: "Turn sound effects on",
     soundOff: "Turn sound effects off",
+  },
+
+  share: {
+    button: "share card",
+    copyImage: "Copy image",
+    downloadPng: "Download PNG",
+    downloadStory: "Download story",
+    copyLink: "Copy link",
+    shareLinkedIn: "Share on LinkedIn",
+    shareX: "Share on X",
+    working: "Working...",
+    copiedImage: "Copied to clipboard",
+    copiedLink: "Link copied",
+    saved: "Saved",
+    popupBlocked: "Popup blocked — allow popups to post",
+    error: "Couldn't export — try again",
+    storyTagline: "YOUR GITHUB, SCANNED",
+    storyCta: "TRY YOUR CARD ON POKEGIT.DEV →",
   },
 } as const;

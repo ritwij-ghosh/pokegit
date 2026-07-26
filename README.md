@@ -26,8 +26,13 @@ Open http://localhost:3000.
 | Variable | Required | Purpose |
 |---|---|---|
 | `GITHUB_TOKEN` | yes | Server-side GitHub API calls. Only needs public read scope. |
-| `ANTHROPIC_API_KEY` | no | Generates the Pokedex flavor text. Without it the app falls back to a deterministic entry built from the same signals, marked "offline text" in the UI. |
-| `ANTHROPIC_MODEL` | no | Defaults to `claude-sonnet-4-5`. |
+| `GROQ_API_KEY` | no | Generates the Pokédex flavor text **once** per username via Groq. Without it a deterministic offline entry is cached instead. |
+| `GROQ_MODEL` | no | Defaults to `llama-3.1-8b-instant`. |
+| `SUPABASE_URL` | yes* | Permanent generate-once cache for Pokédex entries. |
+| `SUPABASE_ANON_KEY` | yes* | Works with fill-once RLS for local/dev writes. |
+| `SUPABASE_SERVICE_ROLE_KEY` | recommended | Preferred for production server-side writes. |
+
+\*Without Supabase the app still renders, but entries are offline-only and not persisted.
 
 There is no user OAuth. Lookups are anonymous and every GitHub call runs
 server-side against a single app-owned token.
@@ -41,6 +46,7 @@ server-side against a single app-owned token.
 | `npm run typecheck` | `tsc --noEmit`. |
 | `npm run lint` | ESLint. |
 | `npm run inspect -- <user> [user...]` | Prints the full computed profile for real usernames — the harness for retuning stat curves and ability thresholds. |
+| `npm run test:pokedex -- [user]` | Smoke-tests generate-once caching for a username (default `octocat`). |
 | `node scripts/shot.mjs <path> <out.png> [w] [h] [selector]` | Screenshots a running dev server, for card iteration. |
 
 `/design-lab` is an unlinked dev route that renders the card across a spread of
@@ -58,12 +64,21 @@ lib/ability-thresholds.ts  every numeric cutoff, in one place
 lib/language-types.ts    language -> linguist color + Pokemon type
 lib/card-palette.ts      linguist color -> usable card palette
 lib/theme-accent.ts      linguist color -> contrast-solved per-theme accent
-lib/flavor-text.ts       Claude call + deterministic fallback
-lib/profile.ts           assembles all of the above
+lib/flavor-text.ts       Groq call + deterministic fallback
+lib/pokedex-entries.ts   Supabase generate-once cache
+lib/pokedex-generation.ts  fire-and-forget generation via after()
+lib/rate-limit.ts        in-process generation / poll rate limits
+lib/supabase.ts          server Supabase client
+lib/profile.ts           assembles all of the above (1h GitHub cache)
 lib/copy.ts              every themed string in the UI
 lib/prefs.ts             theme + sound persistence (localStorage)
 lib/sfx.ts               synthesized WebAudio blip and chime
 ```
+
+Pokédex flavor text is generated **once** when a username is first seen, stored
+in Supabase forever, and never regenerated on page views. Until the write lands,
+the UI shows “Pokédex data pending…” and polls a read-only API route.
+
 
 Colors are never invented. `design-reference/language-colors.json` is a dump of
 GitHub's linguist `languages.yml` and is the only source of hex values.

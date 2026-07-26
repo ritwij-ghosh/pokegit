@@ -2,7 +2,8 @@
  * Shared types for the PokeGit data pipeline.
  *
  * Flow: lib/github.ts (fetch) -> lib/stats.ts (derive + normalize)
- *       -> lib/abilities.ts (classify) -> lib/flavor-text.ts (narrate)
+ *       -> lib/abilities.ts (classify) -> lib/moves.ts (select)
+ *       -> lib/pokedex-generation.ts (generate-once Groq blurb, cached forever)
  */
 
 export type PokemonType =
@@ -84,6 +85,12 @@ export interface RawGitHubData {
    * plan.md section 2.
    */
   commitTimestamps: string[];
+  /**
+   * Subject-line lengths from the same commit sample, used for commit-style
+   * move signals. Parallel to commitTimestamps (same sample, may be shorter
+   * if a commit lacked a message).
+   */
+  commitMessageLengths: number[];
   issueSamples: IssueTimingSample[];
   totalIssuesOpened: number;
   totalIssuesClosed: number;
@@ -153,6 +160,10 @@ export interface DerivedSignals {
   issuesPerCommit: number;
   followersPerContribution: number;
   medianIssueTurnaroundHours: number | null;
+
+  /** Mean subject-line length from the commit sample; 0 when unsampled. */
+  avgCommitMessageLength: number;
+  commitMessageSampleSize: number;
 }
 
 export interface BaseStats {
@@ -180,11 +191,31 @@ export interface Typing {
   color: string;
 }
 
+/** A personalized attack selected from the move bank for the card. */
+export interface SelectedMove {
+  id: string;
+  name: string;
+  type: PokemonType;
+  power: number;
+  description: string;
+  category: string;
+  signal: string;
+  tier: number;
+}
+
 export interface PokeGitProfile {
   profile: GitHubUserProfile;
   stats: BaseStats;
   typing: Typing;
   ability: Ability;
+  /**
+   * Stable move ids selected from the bank. Cached with the profile so
+   * selection does not rerun; display fields are always resolved live from
+   * MOVE_BANK so name/description edits apply without cache invalidation.
+   */
+  moveIds: [string, string];
+  /** Hydrated from `moveIds` against the current move bank (not cached). */
+  moves: [SelectedMove, SelectedMove];
   signals: DerivedSignals;
   raw: {
     totalContributions: number;

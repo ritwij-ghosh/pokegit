@@ -300,8 +300,14 @@ async function fetchLanguageBytes(
   return totals;
 }
 
+interface CommitSample {
+  timestamps: string[];
+  messageLengths: number[];
+}
+
 /**
- * Best-effort commit timestamp sample for the time-of-day histogram.
+ * Best-effort commit sample for the time-of-day histogram and commit-style
+ * signals (message length).
  *
  * The GraphQL contribution calendar is daily-granularity only, so hour-level
  * patterns have to come from actual commit objects. This samples the user's own
@@ -311,24 +317,41 @@ async function fetchLanguageBytes(
  * Timestamps are read from the git author date, which carries the committer's
  * local timezone offset, so the hour reflects the developer's own clock.
  */
-async function fetchCommitTimestamps(
+async function fetchCommitSample(
   login: string,
   repos: RestRepo[],
-): Promise<string[]> {
+): Promise<CommitSample> {
   const sampled = await mapLimit(repos, 3, async (repo) => {
     const response = await githubFetch(
       `${REST_ROOT}/repos/${repo.full_name}/commits` +
         `?author=${encodeURIComponent(login)}&per_page=100`,
     );
-    if (!response.ok) return [] as string[];
+    if (!response.ok) {
+      return { timestamps: [] as string[], messageLengths: [] as number[] };
+    }
     const commits = (await response.json()) as {
-      commit?: { author?: { date?: string } };
+      commit?: { author?: { date?: string }; message?: string };
     }[];
-    return commits
-      .map((c) => c.commit?.author?.date)
-      .filter((d): d is string => typeof d === "string");
+
+    const timestamps: string[] = [];
+    const messageLengths: number[] = [];
+    for (const entry of commits) {
+      const date = entry.commit?.author?.date;
+      if (typeof date === "string") timestamps.push(date);
+      const message = entry.commit?.message;
+      if (typeof message === "string") {
+        // Subject line only — first line before a blank/body break.
+        const subject = message.split("\n", 1)[0]?.trim() ?? "";
+        messageLengths.push(subject.length);
+      }
+    }
+    return { timestamps, messageLengths };
   });
-  return sampled.flat();
+
+  return {
+    timestamps: sampled.flatMap((s) => s.timestamps),
+    messageLengths: sampled.flatMap((s) => s.messageLengths),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -361,9 +384,9 @@ export async function fetchGitHubData(
   const languageTargets = byStars.slice(0, LANGUAGE_SAMPLE_REPOS);
   const commitTargets = byRecency.slice(0, COMMIT_SAMPLE_REPOS);
 
-  const [languageBytes, commitTimestamps] = await Promise.all([
+  const [languageBytes, commitSample] = await Promise.all([
     fetchLanguageBytes(languageTargets),
-    fetchCommitTimestamps(login, commitTargets),
+    fetchCommitSample(login, commitTargets),
   ]);
 
   const calendar = user.contributionsCollection.contributionCalendar;
@@ -419,7 +442,8 @@ export async function fetchGitHubData(
     },
     repos,
     languageBytes,
-    commitTimestamps,
+    commitTimestamps: commitSample.timestamps,
+    commitMessageLengths: commitSample.messageLengths,
     issueSamples,
     totalIssuesOpened: user.openedIssues.totalCount,
     totalIssuesClosed: user.closedIssues.totalCount,

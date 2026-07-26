@@ -1,3 +1,5 @@
+import CalcHint from "@/components/CalcHint";
+
 const MAX_STAT = 255;
 
 /**
@@ -16,17 +18,15 @@ export default function StatBar({
   label: string;
   abbreviation: string;
   value: number;
+  /** Shown in a hover box explaining how the value was derived. */
   hint?: string;
   color?: string;
 }) {
   const pct = Math.max(1.5, (value / MAX_STAT) * 100);
 
-  return (
+  const row = (
     <div className="grid grid-cols-[3.75rem_2.75rem_1fr] items-center gap-3">
-      <span
-        className="text-[11px] uppercase tracking-wider text-[var(--muted)]"
-        title={hint}
-      >
+      <span className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
         {abbreviation}
       </span>
       <span className="text-right text-sm tabular-nums text-[var(--foreground)]">
@@ -40,7 +40,7 @@ export default function StatBar({
             background: `linear-gradient(90deg, color-mix(in srgb, ${color} 72%, transparent), ${color})`,
           }}
           role="meter"
-          aria-label={label}
+          aria-label={hint ? `${label}. ${hint}` : label}
           aria-valuenow={value}
           aria-valuemin={0}
           aria-valuemax={MAX_STAT}
@@ -57,4 +57,8 @@ export default function StatBar({
       </div>
     </div>
   );
+
+  if (!hint) return row;
+
+  return <CalcHint hint={hint}>{row}</CalcHint>;
 }

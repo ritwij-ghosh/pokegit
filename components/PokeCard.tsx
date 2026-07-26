@@ -2,34 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import CardShareMenu from "@/components/CardShareMenu";
 import { TypeSymbol } from "@/components/TypeSymbol";
 import { derivePalette } from "@/lib/card-palette";
+import type { CardMove } from "@/lib/moves";
+import type { ShareCardStats } from "@/lib/share-posts";
 import type { PokemonType } from "@/lib/types";
 
 import "./pokecard.css";
 
-/**
- * v1 card (plan.md section 7): name, single type, HP, language-derived color,
- * avatar with upload override, and two moves whose *structure* is real while
- * their content is placeholder.
- *
- * Slots for weakness, resistance, retreat, stage, rarity and card number are
- * rendered as empty placeholders on purpose, so the composition already
- * accounts for the v2 content rather than being re-laid-out later.
- */
-
-export interface CardMove {
-  name: string;
-  /** Energy cost, one pip per entry. */
-  cost: PokemonType[];
-  damage: string;
-  text: string;
-}
+export type { CardMove };
 
 /**
- * PLACEHOLDER MOVES — v2 replaces these with moves derived from real signals.
- * Kept deliberately realistic in length so the layout is proved at both a
- * short and a long description.
+ * Fallback when a card is rendered without profile moves (design lab, etc.).
  */
 export function placeholderMoves(type: PokemonType): CardMove[] {
   return [
@@ -37,13 +22,13 @@ export function placeholderMoves(type: PokemonType): CardMove[] {
       name: "Force Push",
       cost: [type, type],
       damage: "40",
-      text: "Placeholder move. Real moves are derived from contribution signals in v2.",
+      text: "No move signals available for this preview card.",
     },
     {
       name: "Merge Conflict",
       cost: [type, type, "Normal"],
       damage: "90+",
-      text: "Placeholder move. This description exists to prove a two-line attack body wraps correctly inside the frame.",
+      text: "Personalized moves are selected from GitHub contribution signals.",
     },
   ];
 }
@@ -66,6 +51,12 @@ export interface PokeCardProps {
   width?: string;
   /** Render the "use your own image" control beneath the card. */
   allowImageUpload?: boolean;
+  /** Render the share / download menu beneath the card. */
+  showShare?: boolean;
+  /** Ability name stamped on the story export. */
+  abilityName?: string;
+  /** Full stat snapshot for landscape social banners. */
+  shareStats?: ShareCardStats;
 }
 
 /** Long usernames have to shrink or they collide with the HP block. */
@@ -88,12 +79,16 @@ export default function PokeCard({
   moves,
   width = "min(430px, 88vw)",
   allowImageUpload = true,
+  showShare = false,
+  abilityName = "Unknown Ability",
+  shareStats,
 }: PokeCardProps) {
   const palette = derivePalette(languageColor, type);
   const cardMoves = moves ?? placeholderMoves(type);
 
   const [customImage, setCustomImage] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // Object URLs are only valid while held; release the previous one on change.
   useEffect(() => {
@@ -116,6 +111,7 @@ export default function PokeCard({
   return (
     <div className="flex flex-col items-center gap-3">
       <div
+        ref={cardRef}
         className="pokecard"
         style={
           {
@@ -157,7 +153,13 @@ export default function PokeCard({
               {/* Plain img: the source is either a remote avatar or a local
                   object URL, neither of which benefits from the image optimizer. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image} alt={`${username} avatar`} draggable={false} />
+              <img
+                src={image}
+                alt={`${username} avatar`}
+                draggable={false}
+                // Required so html-to-image can serialize remote avatars.
+                crossOrigin={customImage ? undefined : "anonymous"}
+              />
             </div>
           </div>
 
@@ -222,36 +224,49 @@ export default function PokeCard({
         </div>
       </div>
 
-      {allowImageUpload && (
-        <div className="flex items-center gap-3">
-          <input
-            ref={fileInput}
-            type="file"
-            accept="image/*"
-            onChange={onPickFile}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInput.current?.click()}
-            className="gba-btn px-3 py-2 font-display text-[0.5rem] uppercase
-                       text-[var(--foreground)]"
-          >
-            use your own image
-          </button>
-          {customImage && (
-            <button
-              type="button"
-              onClick={() => {
-                URL.revokeObjectURL(customImage);
-                setCustomImage(null);
-                if (fileInput.current) fileInput.current.value = "";
-              }}
-              className="text-[11px] text-[var(--muted)] underline decoration-dotted
-                         underline-offset-4 transition hover:text-[var(--accent)]"
-            >
-              reset to avatar
-            </button>
+      {(allowImageUpload || showShare) && (
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {allowImageUpload && (
+            <>
+              <input
+                ref={fileInput}
+                type="file"
+                accept="image/*"
+                onChange={onPickFile}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInput.current?.click()}
+                className="gba-btn px-3 py-2 font-display text-[0.5rem] uppercase
+                           text-[var(--foreground)]"
+              >
+                use your own image
+              </button>
+              {customImage && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    URL.revokeObjectURL(customImage);
+                    setCustomImage(null);
+                    if (fileInput.current) fileInput.current.value = "";
+                  }}
+                  className="text-[11px] text-[var(--muted)] underline decoration-dotted
+                             underline-offset-4 transition hover:text-[var(--accent)]"
+                >
+                  reset to avatar
+                </button>
+              )}
+            </>
+          )}
+          {showShare && shareStats && (
+            <CardShareMenu
+              cardRef={cardRef}
+              username={username}
+              abilityName={abilityName}
+              glowColor={palette.accent}
+              stats={shareStats}
+            />
           )}
         </div>
       )}

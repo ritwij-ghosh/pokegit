@@ -1,17 +1,20 @@
-import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import CalcHint from "@/components/CalcHint";
 import { DexBall } from "@/components/DexBall";
 import PokeCard from "@/components/PokeCard";
+import PokedexEntryText from "@/components/PokedexEntryText";
 import ScanChime from "@/components/ScanChime";
 import StatBar from "@/components/StatBar";
 import { TypeBadge, TypeChip } from "@/components/TypeSymbol";
 import { COPY } from "@/lib/copy";
-import { dexNumber } from "@/lib/dex";
-import { generateFlavorText } from "@/lib/flavor-text";
+import { dexNumber, formatDexNumber } from "@/lib/dex";
 import { GitHubError, UserNotFoundError } from "@/lib/github";
+import { resolveFlavorForProfile } from "@/lib/pokedex-generation";
+import { toCardMoves } from "@/lib/moves";
 import { getPokeGitProfile } from "@/lib/profile";
 import { themeAccent } from "@/lib/theme-accent";
 import type { PokeGitProfile } from "@/lib/types";
@@ -31,26 +34,36 @@ export async function generateMetadata({
 }
 
 const STAT_ROWS = [
-  { key: "hp", abbreviation: "HP", label: "HP", hint: "Total contributions, past year" },
-  { key: "attack", abbreviation: "ATK", label: "Attack", hint: "Total commit count" },
-  { key: "defense", abbreviation: "DEF", label: "Defense", hint: "Code reviews given" },
+  { key: "hp", abbreviation: "HP", label: "HP", hint: COPY.profile.statHints.hp },
+  {
+    key: "attack",
+    abbreviation: "ATK",
+    label: "Attack",
+    hint: COPY.profile.statHints.attack,
+  },
+  {
+    key: "defense",
+    abbreviation: "DEF",
+    label: "Defense",
+    hint: COPY.profile.statHints.defense,
+  },
   {
     key: "spAttack",
     abbreviation: "SP.ATK",
     label: "Sp. Attack",
-    hint: "Stars earned plus top single-repo reach",
+    hint: COPY.profile.statHints.spAttack,
   },
   {
     key: "spDefense",
     abbreviation: "SP.DEF",
     label: "Sp. Defense",
-    hint: "Follower count",
+    hint: COPY.profile.statHints.spDefense,
   },
   {
     key: "speed",
     abbreviation: "SPE",
     label: "Speed",
-    hint: "Issue turnaround and issue volume",
+    hint: COPY.profile.statHints.speed,
   },
 ] as const;
 
@@ -138,13 +151,25 @@ export default async function PokedexEntryPage({ params }: PageProps) {
     throw error;
   }
 
-  const flavor = await generateFlavorText(profile);
-  const { stats, typing, ability, signals, raw } = profile;
+  const headerStore = await headers();
+  const clientKey =
+    headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    headerStore.get("x-real-ip") ||
+    "anon";
+  const { flavor, entryNumber } = await resolveFlavorForProfile(profile, {
+    clientKey,
+  });
+  const { stats, typing, ability, moves, signals, raw } = profile;
+  const cardMoves = toCardMoves(moves);
   const accent = themeAccent(typing.color, typing.primary);
+  const dex =
+    entryNumber != null
+      ? formatDexNumber(entryNumber)
+      : dexNumber(profile.profile.login);
 
   return (
     <main
-      className="type-accent mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6"
+      className="type-accent mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8"
       style={
         {
           "--accent-day": accent.day,
@@ -154,272 +179,295 @@ export default async function PokedexEntryPage({ params }: PageProps) {
     >
       <ScanChime key={profile.profile.login} />
 
-      <div className="mb-6 flex justify-end">
-        <a
-          href={`https://github.com/${profile.profile.login}`}
-          target="_blank"
-          rel="noreferrer"
-          className="gba-btn inline-block px-3 py-2 font-display text-[0.5rem] uppercase
-                     text-[var(--foreground)]"
-        >
-          {COPY.profile.viewOnGithub}
-        </a>
-      </div>
-
-      {/* Hero ---------------------------------------------------------------
-          The one zone on this page that gets the tile texture, matching the
-          dashboard hero treatment on the landing page. */}
-      <header className="rise gba-panel tile-route-faint flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
-        <div className="relative h-24 w-24 shrink-0 overflow-hidden border-[3px] border-[var(--type)]">
-          <Image
-            src={profile.profile.avatarUrl}
-            alt={`${profile.profile.login} avatar`}
-            fill
-            sizes="96px"
-            className="object-cover"
-            unoptimized
-          />
-        </div>
+      {/* Header — name, BST badge, tags, pokedex entry */}
+      <header className="rise mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:gap-5">
+        <CalcHint hint={COPY.profile.bstHint} placement="below" className="shrink-0">
+          <div
+            className="dex-panel flex flex-col items-center justify-center px-4 py-3 sm:min-w-[5.5rem]"
+            style={{
+              background:
+                "linear-gradient(160deg, color-mix(in srgb, var(--type) 18%, var(--surface)), var(--surface))",
+            }}
+          >
+            <span
+              className="font-display text-2xl tabular-nums leading-none text-[var(--type)] sm:text-3xl"
+              style={{ textShadow: "2px 2px 0 var(--shadow-hard)" }}
+            >
+              {stats.total}
+            </span>
+            <span className="mt-1.5 text-[9px] uppercase tracking-wider text-[var(--muted)]">
+              {COPY.profile.bstLabel}
+            </span>
+          </div>
+        </CalcHint>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3">
-            <span className="shrink-0 text-[11px] tracking-wider text-[var(--muted)]">
-              {COPY.profile.dexPrefix} {dexNumber(profile.profile.login)}
-            </span>
-            <span className="h-0.5 flex-1 bg-[var(--border)]" />
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                <span className="shrink-0 text-[11px] tracking-wider text-[var(--muted)]">
+                  {COPY.profile.dexPrefix} {dex}
+                </span>
+                <span className="h-0.5 flex-1 bg-[var(--border)]" />
+              </div>
+              <h1 className="mt-1.5 font-display text-xl leading-tight text-[var(--foreground)] sm:text-2xl lg:text-[1.65rem]">
+                {profile.profile.login}
+              </h1>
+            </div>
+
+            <a
+              href={`https://github.com/${profile.profile.login}`}
+              target="_blank"
+              rel="noreferrer"
+              className="gba-btn shrink-0 px-3 py-2 font-display text-[0.5rem] uppercase
+                         text-[var(--foreground)]"
+            >
+              {COPY.profile.viewOnGithub}
+            </a>
           </div>
-          <h1 className="mt-2 truncate font-display text-xl leading-tight text-[var(--foreground)] sm:text-2xl">
-            {profile.profile.login}
-          </h1>
-          <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
-            {profile.profile.name ?? COPY.profile.unnamed} /{" "}
-            {signals.accountAgeYears.toFixed(1)} {COPY.profile.ageSuffix}
-          </p>
+
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <TypeBadge type={typing.primary} />
             {typing.secondary && <TypeBadge type={typing.secondary} />}
+            <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] text-[var(--muted)]">
+              {profile.profile.name ?? COPY.profile.unnamed}
+            </span>
+            <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] text-[var(--muted)]">
+              {signals.accountAgeYears.toFixed(1)} {COPY.profile.ageSuffix}
+            </span>
           </div>
-        </div>
 
-        <div className="shrink-0 text-left sm:text-right">
-          <div className="text-[10px] uppercase tracking-wider text-[var(--muted)]">
-            {COPY.profile.bstLabel}
-          </div>
           <div
-            className="mt-1 font-display text-3xl tabular-nums text-[var(--type)] sm:text-4xl"
-            style={{ textShadow: "3px 3px 0 var(--shadow-hard)" }}
+            className="mt-4 border-l-4 border-[var(--type)] pl-3 sm:pl-4"
+            style={{
+              background:
+                "linear-gradient(90deg, color-mix(in srgb, var(--type) 10%, transparent), transparent)",
+            }}
           >
-            {stats.total}
+            <PokedexEntryText
+              username={profile.profile.login}
+              initial={flavor}
+            />
           </div>
         </div>
       </header>
 
-      {/* Card ------------------------------------------------------------- */}
-      <section className="mt-8 flex justify-center">
-        <div className="relative">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -inset-10 -z-10 rounded-full opacity-50 blur-3xl"
-            style={{
-              background:
-                "radial-gradient(circle, color-mix(in srgb, var(--type) 22%, transparent) 0%, transparent 70%)",
-            }}
-          />
-          <PokeCard
-            username={profile.profile.login}
-            type={typing.primary}
-            hp={stats.hp}
-            languageColor={typing.color}
-            languageName={typing.primaryLanguage}
-            avatarUrl={profile.profile.avatarUrl}
-            dexNumber={dexNumber(profile.profile.login)}
-          />
-        </div>
-      </section>
+      {/* Dashboard — card center, panels around it */}
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-6 xl:gap-8">
+        {/* Left: base stats + ability */}
+        <div className="order-2 flex flex-col gap-5 lg:order-1">
+          <Panel title={COPY.profile.panels.stats}>
+            <div className="space-y-3">
+              {STAT_ROWS.map((row) => (
+                <StatBar
+                  key={row.key}
+                  label={row.label}
+                  abbreviation={row.abbreviation}
+                  value={stats[row.key]}
+                  hint={row.hint}
+                />
+              ))}
+            </div>
+            <CalcHint hint={COPY.profile.bstHint} className="mt-4 block">
+              <div className="flex items-baseline justify-between border-t-2 border-[var(--border)] pt-3">
+                <span className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
+                  BST
+                </span>
+                <span className="text-base tabular-nums text-[var(--foreground)]">
+                  {stats.total}
+                  <span className="ml-1 text-[11px] text-[var(--muted)]">/ 1530</span>
+                </span>
+              </div>
+            </CalcHint>
+          </Panel>
 
-      {/* Flavor text -------------------------------------------------------
-          Styled as a dialogue box, which is what it is. */}
-      <section
-        className="gba-panel mt-8 p-5 sm:p-6"
-        style={{
-          background:
-            "linear-gradient(135deg, color-mix(in srgb, var(--type) 14%, var(--surface)), var(--surface) 60%)",
-        }}
-      >
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="font-display text-[0.5rem] uppercase tracking-wider text-[var(--muted)]">
-            {COPY.profile.entryLabel}
-          </span>
-          {flavor.source === "fallback" && (
-            <span
-              className="border border-[var(--border)] px-1.5 py-px text-[10px] text-[var(--muted)]"
-              title={COPY.profile.offlineHint}
+          <Panel title={COPY.profile.panels.ability}>
+            <div
+              className="border-2 border-[var(--type)] px-4 py-3"
+              style={{
+                background: "color-mix(in srgb, var(--type) 10%, var(--surface))",
+              }}
             >
-              {COPY.profile.offlineBadge}
-            </span>
-          )}
-        </div>
-        <p className="text-sm leading-[2] text-[var(--foreground)]">{flavor.text}</p>
-      </section>
-
-      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {/* Base stats ------------------------------------------------------ */}
-        <Panel title={COPY.profile.panels.stats}>
-          <div className="space-y-3">
-            {STAT_ROWS.map((row) => (
-              <StatBar
-                key={row.key}
-                label={row.label}
-                abbreviation={row.abbreviation}
-                value={stats[row.key]}
-                hint={row.hint}
-              />
-            ))}
-          </div>
-          <div className="mt-4 flex items-baseline justify-between border-t-2 border-[var(--border)] pt-3">
-            <span className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
-              BST
-            </span>
-            <span className="text-base tabular-nums text-[var(--foreground)]">
-              {stats.total}
-              <span className="ml-1 text-[11px] text-[var(--muted)]">/ 1530</span>
-            </span>
-          </div>
-        </Panel>
-
-        {/* Ability --------------------------------------------------------- */}
-        <Panel title={COPY.profile.panels.ability}>
-          <div
-            className="border-2 border-[var(--type)] px-4 py-3"
-            style={{
-              background: "color-mix(in srgb, var(--type) 10%, var(--surface))",
-            }}
-          >
-            <div className="font-display text-[0.7rem] leading-relaxed text-[var(--type)]">
-              {ability.name}
+              <div className="font-display text-[0.7rem] leading-relaxed text-[var(--type)]">
+                {ability.name}
+              </div>
+              <p className="mt-2.5 text-xs leading-[1.9] text-[var(--muted)]">
+                {ability.description}
+              </p>
             </div>
-            <p className="mt-2.5 text-xs leading-[1.9] text-[var(--muted)]">
-              {ability.description}
-            </p>
-          </div>
 
-          <div className="mt-4">
-            <Metric
-              label="Longest streak"
-              value={`${number(signals.streaks.longest)} days`}
-            />
-            <Metric
-              label="Current streak"
-              value={`${number(signals.streaks.current)} days`}
-            />
-            <Metric
-              label="Longest quiet stretch"
-              value={`${number(signals.streaks.longestGap)} days`}
-            />
-            <Metric
-              label="Weekend share"
-              value={`${Math.round(signals.weekendShare * 100)}%`}
-            />
-            {signals.timeOfDay.sampleSize > 0 && (
+            <div className="mt-4">
               <Metric
-                label="After-midnight commits"
-                value={`${Math.round(signals.timeOfDay.lateNight * 100)}% of ${number(signals.timeOfDay.sampleSize)}`}
+                label="Longest streak"
+                value={`${number(signals.streaks.longest)} days`}
               />
-            )}
-          </div>
-        </Panel>
-
-        {/* Raw signals ----------------------------------------------------- */}
-        <Panel title={COPY.profile.panels.metrics}>
-          <Metric
-            label="Contributions (past year)"
-            value={number(raw.totalContributions)}
-          />
-          <Metric label="Commits (past year)" value={number(raw.commits)} />
-          <Metric label="Code reviews given" value={number(raw.reviews)} />
-          <Metric
-            label="Pull requests"
-            value={`${number(raw.pullRequestsMerged)} merged / ${number(raw.pullRequestsOpened)} opened`}
-          />
-          <Metric
-            label="Issues"
-            value={`${number(raw.issuesClosed)} closed / ${number(raw.issuesOpened)} opened`}
-          />
-          <Metric
-            label="Median issue turnaround"
-            value={
-              signals.medianIssueTurnaroundHours === null
-                ? "not enough data"
-                : `${Math.round(signals.medianIssueTurnaroundHours)} h`
-            }
-          />
-          <Metric label="Stars earned" value={number(raw.totalStars)} />
-          <Metric label="Top repo reach" value={`${number(raw.topRepoStars)} stars`} />
-          <Metric label="Followers" value={number(raw.followers)} />
-          <Metric label="Public repositories" value={number(raw.publicRepos)} />
-        </Panel>
-
-        {/* Languages ------------------------------------------------------- */}
-        <Panel title={COPY.profile.panels.languages}>
-          {signals.languages.length === 0 ? (
-            <div className="tile-route-faint border-2 border-dashed border-[var(--border)] px-4 py-8 text-center">
-              <div className="flex justify-center opacity-60">
-                <DexBall size={28} />
-              </div>
-              <p className="mt-4 font-display text-[0.55rem] leading-relaxed text-[var(--foreground)]">
-                {COPY.empty.languages.title}
-              </p>
-              <p className="mx-auto mt-3 max-w-xs text-xs leading-[1.9] text-[var(--muted)]">
-                {COPY.empty.languages.detail}
-              </p>
+              <Metric
+                label="Current streak"
+                value={`${number(signals.streaks.current)} days`}
+              />
+              <Metric
+                label="Longest quiet stretch"
+                value={`${number(signals.streaks.longestGap)} days`}
+              />
+              <Metric
+                label="Weekend share"
+                value={`${Math.round(signals.weekendShare * 100)}%`}
+              />
+              {signals.timeOfDay.sampleSize > 0 && (
+                <Metric
+                  label="After-midnight commits"
+                  value={`${Math.round(signals.timeOfDay.lateNight * 100)}% of ${number(signals.timeOfDay.sampleSize)}`}
+                />
+              )}
             </div>
-          ) : (
-            <>
-              <div className="mb-4 flex h-3 overflow-hidden border-2 border-[var(--border)]">
-                {signals.languages.slice(0, 8).map((lang) => (
-                  <div
-                    key={lang.name}
-                    style={{
-                      width: `${Math.max(lang.share * 100, 0.6)}%`,
-                      background: lang.color,
-                    }}
-                    title={`${lang.name} ${(lang.share * 100).toFixed(1)}%`}
-                  />
-                ))}
+          </Panel>
+        </div>
+
+        {/* Center: card + share */}
+        <div className="order-1 flex justify-center lg:order-2 lg:sticky lg:top-20 lg:self-start">
+          <div className="relative">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-10 -z-10 rounded-full opacity-50 blur-3xl"
+              style={{
+                background:
+                  "radial-gradient(circle, color-mix(in srgb, var(--type) 22%, transparent) 0%, transparent 70%)",
+              }}
+            />
+            <PokeCard
+              username={profile.profile.login}
+              type={typing.primary}
+              hp={stats.hp}
+              languageColor={typing.color}
+              languageName={typing.primaryLanguage}
+              avatarUrl={profile.profile.avatarUrl}
+              dexNumber={dex}
+              moves={cardMoves}
+              width="min(400px, 86vw)"
+              showShare
+              abilityName={ability.name}
+              shareStats={{
+                hp: stats.hp,
+                attack: stats.attack,
+                defense: stats.defense,
+                spAttack: stats.spAttack,
+                spDefense: stats.spDefense,
+                speed: stats.speed,
+                total: stats.total,
+                primaryType: typing.primary,
+                secondaryType: typing.secondary,
+                languageName: typing.primaryLanguage,
+                abilityName: ability.name,
+                dexNumber: dex,
+                contributions: raw.totalContributions,
+                commits: raw.commits,
+                reviews: raw.reviews,
+                pullRequestsMerged: raw.pullRequestsMerged,
+                pullRequestsOpened: raw.pullRequestsOpened,
+                issuesClosed: raw.issuesClosed,
+                issuesOpened: raw.issuesOpened,
+                medianIssueTurnaroundHours: signals.medianIssueTurnaroundHours,
+                totalStars: raw.totalStars,
+                topRepoStars: raw.topRepoStars,
+                followers: raw.followers,
+                publicRepos: raw.publicRepos,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Right: scouting metrics + languages */}
+        <div className="order-3 flex flex-col gap-5">
+          <Panel title={COPY.profile.panels.metrics}>
+            <Metric
+              label="Contributions (past year)"
+              value={number(raw.totalContributions)}
+            />
+            <Metric label="Commits (past year)" value={number(raw.commits)} />
+            <Metric label="Code reviews given" value={number(raw.reviews)} />
+            <Metric
+              label="Pull requests"
+              value={`${number(raw.pullRequestsMerged)} merged / ${number(raw.pullRequestsOpened)} opened`}
+            />
+            <Metric
+              label="Issues"
+              value={`${number(raw.issuesClosed)} closed / ${number(raw.issuesOpened)} opened`}
+            />
+            <Metric
+              label="Median issue turnaround"
+              value={
+                signals.medianIssueTurnaroundHours === null
+                  ? "not enough data"
+                  : `${Math.round(signals.medianIssueTurnaroundHours)} h`
+              }
+            />
+            <Metric label="Stars earned" value={number(raw.totalStars)} />
+            <Metric label="Top repo reach" value={`${number(raw.topRepoStars)} stars`} />
+            <Metric label="Followers" value={number(raw.followers)} />
+            <Metric label="Public repositories" value={number(raw.publicRepos)} />
+          </Panel>
+
+          <Panel title={COPY.profile.panels.languages}>
+            {signals.languages.length === 0 ? (
+              <div className="tile-route-faint border-2 border-dashed border-[var(--border)] px-4 py-8 text-center">
+                <div className="flex justify-center opacity-60">
+                  <DexBall size={28} />
+                </div>
+                <p className="mt-4 font-display text-[0.55rem] leading-relaxed text-[var(--foreground)]">
+                  {COPY.empty.languages.title}
+                </p>
+                <p className="mx-auto mt-3 max-w-xs text-xs leading-[1.9] text-[var(--muted)]">
+                  {COPY.empty.languages.detail}
+                </p>
               </div>
-              <ul className="space-y-2.5">
-                {signals.languages.slice(0, 6).map((lang) => (
-                  <li
-                    key={lang.name}
-                    className="flex items-center justify-between gap-3 text-xs"
-                  >
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span
-                        aria-hidden
-                        className="h-3 w-3 shrink-0 border"
-                        style={{
-                          background: lang.color,
-                          borderColor: "var(--border)",
-                        }}
-                      />
-                      <span className="truncate text-[var(--foreground)]">
-                        {lang.name}
+            ) : (
+              <>
+                <div className="mb-4 flex h-3 overflow-hidden border-2 border-[var(--border)]">
+                  {signals.languages.slice(0, 8).map((lang) => (
+                    <div
+                      key={lang.name}
+                      style={{
+                        width: `${Math.max(lang.share * 100, 0.6)}%`,
+                        background: lang.color,
+                      }}
+                      title={`${lang.name} ${(lang.share * 100).toFixed(1)}%`}
+                    />
+                  ))}
+                </div>
+                <ul className="space-y-2.5">
+                  {signals.languages.slice(0, 6).map((lang) => (
+                    <li
+                      key={lang.name}
+                      className="flex items-center justify-between gap-3 text-xs"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span
+                          aria-hidden
+                          className="h-3 w-3 shrink-0 border"
+                          style={{
+                            background: lang.color,
+                            borderColor: "var(--border)",
+                          }}
+                        />
+                        <span className="truncate text-[var(--foreground)]">
+                          {lang.name}
+                        </span>
+                        <TypeChip type={lang.pokemonType} />
                       </span>
-                      <TypeChip type={lang.pokemonType} />
-                    </span>
-                    <span className="shrink-0 tabular-nums text-[var(--muted)]">
-                      {(lang.share * 100).toFixed(1)}%
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </Panel>
+                      <span className="shrink-0 tabular-nums text-[var(--muted)]">
+                        {(lang.share * 100).toFixed(1)}%
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Panel>
+        </div>
       </div>
 
       {profile.caveats.length > 0 && (
-        <footer className="dex-panel mt-6 border-dashed p-5">
+        <footer className="dex-panel mt-6 border-dashed p-5 lg:mt-8">
           <h2 className="mb-3 font-display text-[0.5rem] uppercase tracking-wider text-[var(--muted)]">
             {COPY.profile.caveatsTitle}
           </h2>

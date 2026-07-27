@@ -258,24 +258,27 @@ body {
 .demo-fan-card {
   transform: translateX(-50%) translate(var(--fan-x), var(--fan-y))
     rotate(var(--fan-r));
-  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), z-index 0s;
+  filter: drop-shadow(4px 8px 0 var(--shadow-hard));
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.demo-fan-card:hover,
-.demo-fan-card:focus-visible {
-  z-index: 50;
-  transform: translateX(-50%) translate(var(--fan-x), calc(var(--fan-y) - 10px))
-    rotate(var(--fan-r)) scale(1.04);
+.demo-fan-card.is-front {
+  filter: drop-shadow(6px 12px 0 var(--shadow-hard));
+  transform: translateX(-50%) translate(var(--fan-x), calc(var(--fan-y) - 12px))
+    rotate(var(--fan-r)) scale(1.05);
 }
 
 @media (max-width: 860px) {
   .demo-fan-card {
     transform: none;
+    filter: drop-shadow(3px 5px 0 var(--shadow-hard));
   }
 
-  .demo-fan-card:hover,
-  .demo-fan-card:focus-visible {
+  .demo-fan-card.is-front {
     transform: none;
+    filter: drop-shadow(3px 5px 0 var(--shadow-hard));
   }
 }
 

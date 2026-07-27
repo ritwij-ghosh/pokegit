@@ -1,9 +1,9 @@
 /**
  * Generate-once orchestration for Pokédex entries.
  *
- * On first sight of a username: insert a NULL row, claim generation, and kick
- * off a fire-and-forget Groq call via next/server `after()`. Page render never
- * waits on the LLM.
+ * First visit awaits generation and returns the produced text directly (does
+ * not depend on a Supabase re-read), so Next fetch-cache quirks cannot leave
+ * the page stuck on "pending".
  */
 
 import "server-only";
@@ -34,21 +34,56 @@ export type FlavorView =
 
 export type FlavorResolution = {
   flavor: FlavorView;
-  /** Sequential entry number from pokegit_entries; null when offline. */
   entryNumber: number | null;
 };
 
-/** Max new generations started per IP (or "anon") per minute. */
-const GEN_RATE_LIMIT = 8;
+const GEN_RATE_LIMIT = 12;
 const GEN_RATE_WINDOW_MS = 60_000;
+
+const inFlight = new Map<string, Promise<PokedexEntryRow | null>>();
+
+function normalizeLogin(login: string): string {
+  return login.trim().replace(/^@/, "").toLowerCase();
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function flavorFromRow(row: PokedexEntryRow): FlavorView {
+  const text = row.pokedex_entry;
+  if (!text) return { status: "pending" };
+  return {
+    status: "ready",
+    text,
+    source:
+      row.pokedex_entry_source === "fallback"
+        ? "fallback"
+        : row.pokedex_entry_source === "llm"
+          ? "llm"
+          : "cache",
+  };
+}
+
+function rowWithEntry(
+  base: PokedexEntryRow,
+  text: string,
+  source: "llm" | "fallback",
+): PokedexEntryRow {
+  return {
+    ...base,
+    pokedex_entry: text,
+    pokedex_entry_source: source,
+    pokedex_entry_generated_at: new Date().toISOString(),
+    generation_started_at: null,
+  };
+}
 
 export async function resolveFlavorForProfile(
   profile: PokeGitProfile,
   opts?: { clientKey?: string },
 ): Promise<FlavorResolution> {
   if (!isSupabaseConfigured()) {
-    // No permanent cache available — fall back to local text, never call Groq
-    // on every page view (that would burn the free tier).
     return {
       flavor: { status: "offline", text: fallbackFlavorText(profile) },
       entryNumber: null,
@@ -59,91 +94,129 @@ export async function resolveFlavorForProfile(
   const entryNumber = row?.entry_number ?? null;
 
   if (row?.pokedex_entry) {
-    return {
-      flavor: {
-        status: "ready",
-        text: row.pokedex_entry,
-        source: row.pokedex_entry_source === "fallback" ? "fallback" : "cache",
-      },
-      entryNumber,
-    };
+    return { flavor: flavorFromRow(row), entryNumber };
   }
 
-  // Re-schedule when there is no in-flight claim (or the claim went stale).
-  // This recovers from after() interruptions without busy-looping retries —
-  // claimPokedexGeneration is a no-op while a fresh claim is held.
   const preferFallback = !isGroqConfigured();
-  scheduleGeneration(profile, opts?.clientKey, { preferFallback });
-  return { flavor: { status: "pending" }, entryNumber };
-}
+  const login = normalizeLogin(profile.profile.login);
+  const key = opts?.clientKey ?? "anon";
 
-function scheduleGeneration(
-  profile: PokeGitProfile,
-  clientKey?: string,
-  options?: { preferFallback?: boolean },
-): void {
-  const key = clientKey ?? "anon";
   if (!allowRequest(`gen:${key}`, GEN_RATE_LIMIT, GEN_RATE_WINDOW_MS)) {
     console.warn(
-      `[pokedex-generation] rate limited for ${key}; skipping schedule.`,
+      `[pokedex-generation] rate limited for ${key}; returning pending.`,
     );
-    return;
+    return { flavor: { status: "pending" }, entryNumber };
   }
+
+  const genPromise = getOrStartGeneration(profile, { preferFallback });
 
   after(async () => {
     try {
-      const before = await getPokedexEntry(profile.profile.login);
-      if (before?.pokedex_entry) return;
-
-      const result = await runPokedexGeneration(profile, options);
+      const result = await genPromise;
       if (result?.pokedex_entry) {
         console.info(
-          `[pokedex-generation] cached entry for ${profile.profile.login} (${result.pokedex_entry_source})`,
+          `[pokedex-generation] cached entry for ${login} (${result.pokedex_entry_source})`,
         );
       } else {
         console.warn(
-          `[pokedex-generation] left pending for ${profile.profile.login} (claim busy or API failure)`,
+          `[pokedex-generation] finished without entry for ${login}`,
         );
       }
     } catch (error) {
-      console.error(
-        `[pokedex-generation] after() failed for ${profile.profile.login}`,
-        error,
-      );
+      console.error(`[pokedex-generation] after() failed for ${login}`, error);
     }
   });
+
+  const result = await genPromise;
+
+  if (result?.pokedex_entry) {
+    return {
+      flavor: flavorFromRow(result),
+      entryNumber: result.entry_number ?? entryNumber,
+    };
+  }
+
+  return { flavor: { status: "pending" }, entryNumber };
+}
+
+function getOrStartGeneration(
+  profile: PokeGitProfile,
+  options?: { preferFallback?: boolean },
+): Promise<PokedexEntryRow | null> {
+  const login = normalizeLogin(profile.profile.login);
+  const existing = inFlight.get(login);
+  if (existing) return existing;
+
+  const promise = runPokedexGeneration(profile, options).finally(() => {
+    inFlight.delete(login);
+  });
+  inFlight.set(login, promise);
+  return promise;
+}
+
+async function buildEntryText(
+  profile: PokeGitProfile,
+  options?: { preferFallback?: boolean },
+): Promise<{ text: string; source: "llm" | "fallback" }> {
+  if (options?.preferFallback || !isGroqConfigured()) {
+    return { text: fallbackFlavorText(profile), source: "fallback" };
+  }
+
+  const llm = await generateFlavorTextWithGroq(profile);
+  if (llm) return { text: llm, source: "llm" };
+
+  console.warn(
+    `[pokedex-generation] Groq empty/failed for ${normalizeLogin(profile.profile.login)}; saving fallback`,
+  );
+  return { text: fallbackFlavorText(profile), source: "fallback" };
 }
 
 export async function runPokedexGeneration(
   profile: PokeGitProfile,
   options?: { preferFallback?: boolean },
 ): Promise<PokedexEntryRow | null> {
-  const login = profile.profile.login;
-  const claimed = await claimPokedexGeneration(login);
-  if (!claimed) return getPokedexEntry(login);
+  const login = normalizeLogin(profile.profile.login);
+  const base = await ensurePokedexRow(login);
+  if (!base) return null;
+  if (base.pokedex_entry) return base;
+
+  // Best-effort claim only — never abort generation because of a busy claim.
+  let claimed = await claimPokedexGeneration(login);
+  if (!claimed) {
+    await sleep(800);
+    const afterWait = await getPokedexEntry(login);
+    if (afterWait?.pokedex_entry) return afterWait;
+    console.warn(
+      `[pokedex-generation] claim busy for ${login}; generating without exclusive claim`,
+    );
+    await releasePokedexClaim(login);
+    claimed = await claimPokedexGeneration(login);
+  }
 
   try {
-    let text: string | null = null;
-    let source: "llm" | "fallback" = "llm";
-
-    if (options?.preferFallback || !isGroqConfigured()) {
-      text = fallbackFlavorText(profile);
-      source = "fallback";
-    } else {
-      text = await generateFlavorTextWithGroq(profile);
-      if (!text) {
-        // Per spec: on API failure leave NULL — no retry cascade.
-        await releasePokedexClaim(login);
-        return getPokedexEntry(login);
-      }
-      source = "llm";
+    const { text, source } = await buildEntryText(profile, options);
+    const saved = await savePokedexEntry(login, text, source);
+    if (!saved) {
+      // Race loser: prefer the winner's persisted text when readable.
+      const winner = await getPokedexEntry(login);
+      if (winner?.pokedex_entry) return winner;
+      console.warn(
+        `[pokedex-generation] save missed for ${login}; returning in-memory entry`,
+      );
     }
-
-    await savePokedexEntry(login, text, source);
-    return getPokedexEntry(login);
+    // Always return the text we produced so the first response is never pending
+    // due to a stale Supabase re-read.
+    return rowWithEntry(base, text, source);
   } catch (error) {
     console.error("[pokedex-generation] failed", error);
-    await releasePokedexClaim(login);
-    return getPokedexEntry(login);
+    const fallback = fallbackFlavorText(profile);
+    try {
+      await savePokedexEntry(login, fallback, "fallback");
+    } catch (saveError) {
+      console.error("[pokedex-generation] fallback save failed", saveError);
+    } finally {
+      if (claimed) await releasePokedexClaim(login);
+    }
+    return rowWithEntry(base, fallback, "fallback");
   }
 }

@@ -1,0 +1,101 @@
+import { COPY } from "@/lib/copy";
+import { SITE_FOUNDER } from "@/lib/site";
+
+/** Site-wide credit strip — quiet chrome, mirrors the header border treatment. */
+export default function SiteFooter() {
+  return (
+    <footer className="mt-auto border-t-[3px] border-[var(--ink)] bg-[var(--surface)]">
+      <div
+        className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between
+                   gap-3 px-4 py-4 text-center sm:flex-row sm:items-center
+                   sm:text-left sm:px-6"
+      >
+        <div className="flex min-w-0 flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-4">
+          <p className="text-[11px] leading-relaxed tracking-wide text-[var(--muted)]">
+            {COPY.footer.creditPrefix}{" "}
+            <span className="text-[var(--foreground)]">{SITE_FOUNDER.name}</span>
+          </p>
+          <nav
+            aria-label={COPY.footer.navLabel}
+            className="flex shrink-0 items-center gap-2.5"
+          >
+            <a
+              href={`mailto:${SITE_FOUNDER.email}`}
+              aria-label={COPY.footer.email}
+              title={SITE_FOUNDER.email}
+              className="text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+            >
+              <EmailIcon />
+            </a>
+            <a
+              href={SITE_FOUNDER.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={COPY.footer.github}
+              title={COPY.footer.github}
+              className="text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+            >
+              <GitHubIcon />
+            </a>
+            <a
+              href={SITE_FOUNDER.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={COPY.footer.linkedin}
+              title={COPY.footer.linkedin}
+              className="text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+            >
+              <LinkedInIcon />
+            </a>
+          </nav>
+        </div>
+
+        <p className="shrink-0 text-[10px] tracking-wide text-[var(--muted)] sm:text-right">
+          {COPY.brand.footer}
+        </p>
+      </div>
+    </footer>
+  );
+}
+
+function EmailIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M2 5.5A2.5 2.5 0 0 1 4.5 3h15A2.5 2.5 0 0 1 22 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5v-13zm2.5-.5a.5.5 0 0 0-.5.5v.38l8 5.14 8-5.14V5.5a.5.5 0 0 0-.5-.5h-15zm15.5 3.12-7.48 4.8a1 1 0 0 1-1.04 0L4 8.12V18.5a.5.5 0 0 0 .5.5h15a.5.5 0 0 0 .5-.5V8.12z" />
+    </svg>
+  );
+}
+
+function GitHubIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M12 .3C5.37.3 0 5.67 0 12.3c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.26.82-.577 0-.285-.01-1.04-.016-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.76-1.605-2.665-.303-5.467-1.332-5.467-5.93 0-1.31.468-2.382 1.236-3.222-.124-.303-.536-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.5 11.5 0 0 1 3.003-.404c1.02.005 2.047.138 3.003.404 2.29-1.552 3.297-1.23 3.297-1.23.655 1.653.243 2.873.12 3.176.77.84 1.235 1.911 1.235 3.222 0 4.61-2.807 5.624-5.48 5.921.43.372.814 1.103.814 2.222 0 1.606-.014 2.898-.014 3.293 0 .32.216.694.825.576C20.565 22.092 24 17.592 24 12.297 24 5.67 18.627.3 12 .3z" />
+    </svg>
+  );
+}
+
+function LinkedInIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.24 8.25h4.52V24H.24V8.25zM8.34 8.25h4.33v2.14h.06c.6-1.14 2.08-2.34 4.28-2.34 4.58 0 5.43 3.01 5.43 6.93V24h-4.52v-7.43c0-1.77-.03-4.05-2.47-4.05-2.47 0-2.85 1.93-2.85 3.92V24H8.34V8.25z" />
+    </svg>
+  );
+}

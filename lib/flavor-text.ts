@@ -177,9 +177,12 @@ export function isGroqConfigured(): boolean {
   return Boolean(key && !key.startsWith("gsk_your_"));
 }
 
+/** Hard cap so a hung Groq request cannot pin the in-process spacing chain. */
+const GROQ_TIMEOUT_MS = 8_000;
+
 /**
- * Call Groq once. On any failure returns null — caller leaves the DB entry NULL
- * and shows the pending placeholder (no retry cascade).
+ * Call Groq once. On any failure returns null — caller persists fallback text
+ * (generate-once) rather than leaving the UI stranded on pending.
  */
 export async function generateFlavorTextWithGroq(
   profile: PokeGitProfile,
@@ -195,6 +198,7 @@ export async function generateFlavorTextWithGroq(
           authorization: `Bearer ${process.env.GROQ_API_KEY}`,
         },
         cache: "no-store",
+        signal: AbortSignal.timeout(GROQ_TIMEOUT_MS),
         body: JSON.stringify({
           model: process.env.GROQ_MODEL || DEFAULT_MODEL,
           max_tokens: 150,
@@ -209,7 +213,7 @@ export async function generateFlavorTextWithGroq(
 
     if (!response.ok) {
       console.error(
-        `[flavor-text] Groq responded ${response.status}; leaving entry unset.`,
+        `[flavor-text] Groq responded ${response.status}; using fallback.`,
       );
       return null;
     }
@@ -221,7 +225,7 @@ export async function generateFlavorTextWithGroq(
     if (!raw) return null;
     return enforceSentenceCap(raw);
   } catch (error) {
-    console.error("[flavor-text] Groq call failed; leaving entry unset.", error);
+    console.error("[flavor-text] Groq call failed; using fallback.", error);
     return null;
   }
 }

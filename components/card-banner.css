@@ -1,0 +1,329 @@
+/*
+ * Offscreen 16:9 banner (1920×1080) for LinkedIn / X posts.
+ * Theme vars from lib/export-theme.ts (--export-*).
+ */
+
+.card-banner {
+  --export-accent: #dab40b;
+  --export-deep: #4a3a08;
+  --export-banner: #e0c43a;
+  --export-face: #f7ecba;
+  --export-face-deep: #d4b84a;
+  --export-ink: #1a1408;
+  --export-glow: #e0c43a;
+  --export-frame: #f0d45c;
+
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  align-items: center;
+  width: 1920px;
+  height: 1080px;
+  padding: 64px 80px;
+  gap: 40px;
+  overflow: hidden;
+  color: #f7f2e6;
+  background:
+    radial-gradient(
+      55% 70% at 22% 50%,
+      color-mix(in srgb, var(--export-glow) 40%, transparent) 0%,
+      transparent 65%
+    ),
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--export-deep) 75%, #0a0810) 0%,
+      color-mix(in srgb, var(--export-deep) 92%, black) 48%,
+      #06040a 100%
+    );
+  font-family: var(--font-silkscreen), ui-monospace, monospace;
+  isolation: isolate;
+}
+
+.card-banner__watermark {
+  position: absolute;
+  z-index: 0;
+  top: -30%;
+  left: -15%;
+  width: 130%;
+  height: 160%;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--export-face) 55%, white);
+  opacity: 0.075;
+  transform: rotate(-20deg);
+  -webkit-mask-image: var(--export-watermark);
+  mask-image: var(--export-watermark);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  -webkit-mask-size: 96px 96px;
+  mask-size: 96px 96px;
+}
+
+.card-banner__glare {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      40% 55% at 18% 40%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      108deg,
+      transparent 36%,
+      color-mix(in srgb, var(--export-accent) 10%, #5ce1ff) 46%,
+      rgba(255, 255, 255, 0.12) 51%,
+      color-mix(in srgb, var(--export-banner) 10%, #ffe56a) 56%,
+      transparent 70%
+    );
+  mix-blend-mode: soft-light;
+  opacity: 0.26;
+}
+
+.card-banner__left,
+.card-banner__right {
+  position: relative;
+  z-index: 2;
+}
+
+.card-banner__left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-banner__glow {
+  position: absolute;
+  inset: 8% 12%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--export-glow) 50%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(36px);
+  pointer-events: none;
+}
+
+.card-banner__card {
+  position: relative;
+  z-index: 1;
+  width: min(480px, 86%);
+  height: auto;
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--export-frame) 40%, transparent),
+    0 0 56px color-mix(in srgb, var(--export-glow) 38%, transparent),
+    0 36px 70px rgba(0, 0, 0, 0.55);
+}
+
+.card-banner__right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.card-banner__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-banner__wordmark {
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 40px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+}
+
+.card-banner__wordmark-tail {
+  color: var(--export-glow);
+}
+
+.card-banner__tagline {
+  font-size: 16px;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 65%, transparent);
+}
+
+.card-banner__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-banner__name {
+  margin: 0;
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 36px;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: #fff8ea;
+  text-shadow:
+    3px 3px 0 rgba(0, 0, 0, 0.5),
+    0 0 24px color-mix(in srgb, var(--export-glow) 35%, transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-banner__ability {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--export-glow);
+}
+
+.card-banner__meta {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 62%, transparent);
+}
+
+.card-banner-scout {
+  padding: 18px 24px 16px;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--export-face) 11%, transparent) 0%,
+      color-mix(in srgb, var(--export-deep) 45%, transparent) 100%
+    );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--export-frame) 28%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card-banner-scout__heading {
+  margin: 0 0 12px;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 60%, transparent);
+}
+
+.card-banner-scout__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 22px;
+}
+
+.card-banner-scout__item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.card-banner-scout__value {
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--export-glow);
+}
+
+.card-banner-scout__label {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 66%, transparent);
+}
+
+.card-banner-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 22px;
+  padding: 20px 24px 16px;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--export-face) 12%, transparent) 0%,
+      color-mix(in srgb, var(--export-deep) 50%, transparent) 100%
+    );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--export-frame) 32%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card-banner-stats__row {
+  display: grid;
+  grid-template-columns: 102px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-banner-stats__label {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 68%, transparent);
+}
+
+.card-banner-stats__track {
+  display: block;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.card-banner-stats__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--export-accent),
+    var(--export-glow)
+  );
+}
+
+.card-banner-stats__value {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: #f7f2e6;
+}
+
+.card-banner-stats__total {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--export-frame) 26%, transparent);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 70%, transparent);
+}
+
+.card-banner-stats__total b {
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 24px;
+  letter-spacing: 0.06em;
+  color: var(--export-glow);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--export-glow) 45%, transparent);
+}
+
+.card-banner__cta {
+  margin: 0;
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--export-glow);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--export-glow) 40%, transparent);
+}

@@ -179,77 +179,74 @@ export default async function PokedexEntryPage({ params }: PageProps) {
     >
       <ScanChime key={profile.profile.login} />
 
-      {/* Header — name, BST badge, tags, pokedex entry */}
-      <header className="rise mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:gap-5">
-        <CalcHint hint={COPY.profile.bstHint} placement="below" className="shrink-0">
-          <div
-            className="dex-panel flex flex-col items-center justify-center px-4 py-3 sm:min-w-[5.5rem]"
-            style={{
-              background:
-                "linear-gradient(160deg, color-mix(in srgb, var(--type) 18%, var(--surface)), var(--surface))",
-            }}
-          >
-            <span
-              className="font-display text-2xl tabular-nums leading-none text-[var(--type)] sm:text-3xl"
-              style={{ textShadow: "2px 2px 0 var(--shadow-hard)" }}
+      {/* Header — name, BST badge, tags, then full-width pokedex entry */}
+      <header className="rise mb-6 flex flex-col gap-4 sm:mb-8 sm:gap-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+          <CalcHint hint={COPY.profile.bstHint} placement="below" className="shrink-0">
+            <div
+              className="dex-panel flex flex-col items-center justify-center px-4 py-3 sm:min-w-[5.5rem]"
+              style={{
+                background:
+                  "linear-gradient(160deg, color-mix(in srgb, var(--type) 18%, var(--surface)), var(--surface))",
+              }}
             >
-              {stats.total}
-            </span>
-            <span className="mt-1.5 text-[9px] uppercase tracking-wider text-[var(--muted)]">
-              {COPY.profile.bstLabel}
-            </span>
-          </div>
-        </CalcHint>
+              <span
+                className="font-display text-2xl tabular-nums leading-none text-[var(--type)] sm:text-3xl"
+                style={{ textShadow: "2px 2px 0 var(--shadow-hard)" }}
+              >
+                {stats.total}
+              </span>
+              <span className="mt-1.5 text-[9px] uppercase tracking-wider text-[var(--muted)]">
+                {COPY.profile.bstLabel}
+              </span>
+            </div>
+          </CalcHint>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-3">
-                <span className="shrink-0 text-[11px] tracking-wider text-[var(--muted)]">
-                  {COPY.profile.dexPrefix} {dex}
-                </span>
-                <span className="h-0.5 flex-1 bg-[var(--border)]" />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-3">
+                  <span className="shrink-0 text-[11px] tracking-wider text-[var(--muted)]">
+                    {COPY.profile.dexPrefix} {dex}
+                  </span>
+                  <span className="h-0.5 flex-1 bg-[var(--border)]" />
+                </div>
+                <h1 className="mt-1.5 font-display text-xl leading-tight text-[var(--foreground)] sm:text-2xl lg:text-[1.65rem]">
+                  {profile.profile.login}
+                </h1>
               </div>
-              <h1 className="mt-1.5 font-display text-xl leading-tight text-[var(--foreground)] sm:text-2xl lg:text-[1.65rem]">
-                {profile.profile.login}
-              </h1>
+
+              <a
+                href={`https://github.com/${profile.profile.login}`}
+                target="_blank"
+                rel="noreferrer"
+                className="gba-btn shrink-0 px-3 py-2 font-display text-[0.5rem] uppercase
+                           text-[var(--foreground)]"
+              >
+                {COPY.profile.viewOnGithub}
+              </a>
             </div>
 
-            <a
-              href={`https://github.com/${profile.profile.login}`}
-              target="_blank"
-              rel="noreferrer"
-              className="gba-btn shrink-0 px-3 py-2 font-display text-[0.5rem] uppercase
-                         text-[var(--foreground)]"
-            >
-              {COPY.profile.viewOnGithub}
-            </a>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <TypeBadge type={typing.primary} />
-            {typing.secondary && <TypeBadge type={typing.secondary} />}
-            <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] text-[var(--muted)]">
-              {profile.profile.name ?? COPY.profile.unnamed}
-            </span>
-            <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] text-[var(--muted)]">
-              {signals.accountAgeYears.toFixed(1)} {COPY.profile.ageSuffix}
-            </span>
-          </div>
-
-          <div
-            className="mt-4 border-l-4 border-[var(--type)] pl-3 sm:pl-4"
-            style={{
-              background:
-                "linear-gradient(90deg, color-mix(in srgb, var(--type) 10%, transparent), transparent)",
-            }}
-          >
-            <PokedexEntryText
-              username={profile.profile.login}
-              initial={flavor}
-            />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <TypeBadge type={typing.primary} />
+              {typing.secondary && <TypeBadge type={typing.secondary} />}
+              <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] text-[var(--muted)]">
+                {profile.profile.name ?? COPY.profile.unnamed}
+              </span>
+              <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] text-[var(--muted)]">
+                {signals.accountAgeYears.toFixed(1)} {COPY.profile.ageSuffix}
+              </span>
+            </div>
           </div>
         </div>
+
+        <Panel title={COPY.profile.entryLabel}>
+          <PokedexEntryText
+            key={profile.profile.login}
+            username={profile.profile.login}
+            initial={flavor}
+          />
+        </Panel>
       </header>
 
       {/* Dashboard — card center, panels around it */}

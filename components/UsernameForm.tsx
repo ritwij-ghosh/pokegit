@@ -4,10 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { COPY } from "@/lib/copy";
+import { DEMO_USERNAMES } from "@/lib/site";
 
 const GITHUB_USERNAME = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i;
-
-const EXAMPLES = ["torvalds", "sindresorhus", "rich-harris"];
 
 export default function UsernameForm({
   autoFocus = false,
@@ -75,7 +74,7 @@ export default function UsernameForm({
         ) : (
           <span className="text-[var(--muted)]">
             {COPY.home.tryPrompt}{" "}
-            {EXAMPLES.map((name, index) => (
+            {DEMO_USERNAMES.map((name, index) => (
               <span key={name}>
                 {index > 0 && " / "}
                 <button

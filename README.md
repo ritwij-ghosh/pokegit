@@ -148,8 +148,8 @@ Both of these are expected to move once real distributions are visible
   solved against three reference profiles: a heavy OSS maintainer at ~200-230,
   a casual contributor at ~60-100, and a near-inactive account at ~20-40.
 - **Ability thresholds** — `lib/ability-thresholds.ts`. Ability *order* is
-  load-bearing and lives in `lib/abilities.ts`; earlier entries shadow later
-  ones by design.
+  load-bearing and lives in `lib/abilities.ts` (rarity-first ladder); earlier
+  entries shadow later ones by design.
 
 ## Not in v1
 

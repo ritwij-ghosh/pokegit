@@ -34,10 +34,10 @@ export const ABILITY_THRESHOLDS = {
 
   // --- Tenure -----------------------------------------------------------
   /**
-   * NOTE: at 5 years this catches a large share of working developers, and
-   * because Veteran sits at position 8 it shadows most of the abilities below
-   * it. Kept at the plan's value deliberately; this is the first knob to turn
-   * if the distribution comes out flat.
+   * At 5 years this catches many working developers, but Veteran sits near the
+   * bottom of the rarity-first ladder so it only fires when nothing scarcer
+   * matched. Threshold kept at the plan value; raise it if Veteran is still
+   * too common among otherwise undistinguished profiles.
    */
   veteranAccountYears: 5,
   risingStarMaxAccountYears: 1,

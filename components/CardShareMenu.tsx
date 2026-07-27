@@ -10,6 +10,7 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 
+import CardBannerFrame from "@/components/CardBannerFrame";
 import CardStoryFrame from "@/components/CardStoryFrame";
 import {
   captureElementBlob,
@@ -20,6 +21,7 @@ import {
   sharePageUrl,
 } from "@/lib/card-export";
 import { COPY } from "@/lib/copy";
+import { exportThemeForType } from "@/lib/export-theme";
 import {
   sharePost,
   siteHomeUrl,
@@ -28,13 +30,20 @@ import {
 import { playBlip, playChime } from "@/lib/sfx";
 
 type Status = "idle" | "working" | "ok" | "error";
-type MenuActionId = "copyImage" | "downloadPng" | "downloadStory" | "copyLink";
+type MenuActionId =
+  | "copyImage"
+  | "downloadPng"
+  | "downloadStory"
+  | "downloadBanner"
+  | "copyLink";
 type SocialPlatform = "linkedin" | "x";
+type OffscreenKind = "story" | "banner";
 
 const ACTIONS: { id: MenuActionId; label: string }[] = [
   { id: "copyImage", label: COPY.share.copyImage },
   { id: "downloadPng", label: COPY.share.downloadPng },
   { id: "downloadStory", label: COPY.share.downloadStory },
+  { id: "downloadBanner", label: COPY.share.downloadBanner },
   { id: "copyLink", label: COPY.share.copyLink },
 ];
 
@@ -75,25 +84,27 @@ function ChevronIcon({ open }: { open: boolean }) {
 export interface CardShareMenuProps {
   cardRef: RefObject<HTMLElement | null>;
   username: string;
-  abilityName: string;
-  glowColor: string;
   stats: ShareCardStats;
 }
 
 export default function CardShareMenu({
   cardRef,
   username,
-  abilityName,
-  glowColor,
   stats,
 }: CardShareMenuProps) {
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const storyRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [statusText, setStatusText] = useState("");
-  const [storyImage, setStoryImage] = useState<string | null>(null);
+  const [offscreen, setOffscreen] = useState<{
+    kind: OffscreenKind;
+    image: string;
+  } | null>(null);
+
+  const theme = exportThemeForType(stats.primaryType);
 
   const close = useEffectEvent(() => {
     setOpen(false);
@@ -126,22 +137,37 @@ export default function CardShareMenu({
     }, ms);
   }
 
-  async function mountStoryFrame(dataUrl: string): Promise<HTMLElement> {
+  async function mountOffscreen(
+    kind: OffscreenKind,
+    dataUrl: string,
+  ): Promise<HTMLElement> {
     flushSync(() => {
-      setStoryImage(dataUrl);
+      setOffscreen({ kind, image: dataUrl });
     });
 
-    const root = storyRef.current;
+    const root = kind === "story" ? storyRef.current : bannerRef.current;
     const img = root?.querySelector("img");
-    if (!root || !img) throw new Error("Story frame missing");
+    if (!root || !img) throw new Error(`${kind} frame missing`);
     if (!img.complete) {
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
-        img.onerror = () => reject(new Error("Story image failed to load"));
+        img.onerror = () => reject(new Error(`${kind} image failed to load`));
       });
     }
     await document.fonts.ready;
     return root;
+  }
+
+  async function captureBannerPng(): Promise<string> {
+    const card = cardRef.current;
+    if (!card) throw new Error("Card missing");
+    const cardPng = await captureElementPng(card, { pixelRatio: 2 });
+    const banner = await mountOffscreen("banner", cardPng);
+    return captureElementPng(banner, {
+      pixelRatio: 1,
+      width: 1920,
+      height: 1080,
+    });
   }
 
   async function runMenuAction(action: MenuActionId) {
@@ -176,8 +202,16 @@ export default function CardShareMenu({
         return;
       }
 
+      if (action === "downloadBanner") {
+        const bannerPng = await captureBannerPng();
+        downloadDataUrl(bannerPng, `pokegit-${username}-banner.png`);
+        flashStatus("ok", COPY.share.saved);
+        playChime();
+        return;
+      }
+
       const cardPng = await captureElementPng(card, { pixelRatio: 2 });
-      const story = await mountStoryFrame(cardPng);
+      const story = await mountOffscreen("story", cardPng);
       const storyPng = await captureElementPng(story, {
         pixelRatio: 1,
         width: 1080,
@@ -190,26 +224,45 @@ export default function CardShareMenu({
       console.error(error);
       flashStatus("error", COPY.share.error);
     } finally {
-      setStoryImage(null);
+      setOffscreen(null);
     }
   }
 
-  /** Open compose in a new tab only — never block or busy the card tab. */
-  function shareTo(platform: SocialPlatform) {
+  /**
+   * LinkedIn / X: bake a themed banner download, then open the composer.
+   * Download first so a blocked popup still leaves the user with the asset.
+   */
+  async function shareTo(platform: SocialPlatform) {
+    const card = cardRef.current;
+    if (!card || status === "working") return;
+
+    setStatus("working");
+    setStatusText(COPY.share.working);
     playBlip();
 
-    const opened = sharePost(platform, {
-      username,
-      pageUrl: sharePageUrl(username),
-      homeUrl: siteHomeUrl(),
-      stats,
-    });
-    if (!opened) {
-      flashStatus("error", COPY.share.popupBlocked);
-      return;
-    }
+    try {
+      const bannerPng = await captureBannerPng();
+      downloadDataUrl(bannerPng, `pokegit-${username}-banner.png`);
 
-    playChime();
+      const opened = sharePost(platform, {
+        username,
+        pageUrl: sharePageUrl(username),
+        homeUrl: siteHomeUrl(),
+        stats,
+      });
+      if (!opened) {
+        flashStatus("error", COPY.share.popupBlocked);
+        return;
+      }
+
+      flashStatus("ok", COPY.share.bannerReady, 3600);
+      playChime();
+    } catch (error) {
+      console.error(error);
+      flashStatus("error", COPY.share.error);
+    } finally {
+      setOffscreen(null);
+    }
   }
 
   return (
@@ -266,9 +319,10 @@ export default function CardShareMenu({
         type="button"
         title={COPY.share.shareLinkedIn}
         aria-label={COPY.share.shareLinkedIn}
+        disabled={status === "working"}
         className="gba-btn inline-flex h-[34px] w-[34px] items-center justify-center
-                   text-[var(--foreground)]"
-        onClick={() => shareTo("linkedin")}
+                   text-[var(--foreground)] disabled:opacity-55"
+        onClick={() => void shareTo("linkedin")}
       >
         <LinkedInIcon />
       </button>
@@ -277,9 +331,10 @@ export default function CardShareMenu({
         type="button"
         title={COPY.share.shareX}
         aria-label={COPY.share.shareX}
+        disabled={status === "working"}
         className="gba-btn inline-flex h-[34px] w-[34px] items-center justify-center
-                   text-[var(--foreground)]"
-        onClick={() => shareTo("x")}
+                   text-[var(--foreground)] disabled:opacity-55"
+        onClick={() => void shareTo("x")}
       >
         <XIcon />
       </button>
@@ -297,17 +352,32 @@ export default function CardShareMenu({
         </p>
       )}
 
-      {storyImage && (
+      {offscreen?.kind === "story" && (
         <div
           aria-hidden
           className="pointer-events-none fixed top-0 -left-[10000px]"
         >
           <CardStoryFrame
             ref={storyRef}
-            cardImageUrl={storyImage}
-            abilityName={abilityName}
-            glowColor={glowColor}
+            cardImageUrl={offscreen.image}
             username={username}
+            theme={theme}
+            stats={stats}
+          />
+        </div>
+      )}
+
+      {offscreen?.kind === "banner" && (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed top-0 -left-[10000px]"
+        >
+          <CardBannerFrame
+            ref={bannerRef}
+            cardImageUrl={offscreen.image}
+            username={username}
+            theme={theme}
+            stats={stats}
           />
         </div>
       )}

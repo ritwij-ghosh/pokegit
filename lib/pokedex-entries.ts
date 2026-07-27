@@ -25,7 +25,7 @@ function normalizeUsername(username: string): string {
 }
 
 /** How long a "generating" claim is considered in-flight before we allow reclaim. */
-const CLAIM_STALE_MS = 90_000;
+const CLAIM_STALE_MS = 15_000;
 
 export async function getPokedexEntry(
   username: string,
@@ -98,7 +98,8 @@ export async function claimPokedexGeneration(
     console.error("[pokedex-entries] claim failed", error.message);
     return false;
   }
-  return data === true;
+  // PostgREST normally returns a boolean; be tolerant of truthy edge cases.
+  return data === true || data === "t" || data === 1;
 }
 
 export async function savePokedexEntry(
@@ -110,25 +111,28 @@ export async function savePokedexEntry(
   const login = normalizeUsername(username);
   const now = new Date().toISOString();
 
-  const { data, error } = await getSupabase()
+  const { data, error, count } = await getSupabase()
     .from("pokegit_entries")
-    .update({
-      pokedex_entry: entry,
-      pokedex_entry_generated_at: now,
-      pokedex_entry_source: source,
-      generation_started_at: null,
-      updated_at: now,
-    })
+    .update(
+      {
+        pokedex_entry: entry,
+        pokedex_entry_generated_at: now,
+        pokedex_entry_source: source,
+        generation_started_at: null,
+        updated_at: now,
+      },
+      { count: "exact" },
+    )
     .eq("username", login)
     .is("pokedex_entry", null)
-    .select("username")
-    .maybeSingle();
+    .select("username");
 
   if (error) {
     console.error("[pokedex-entries] save failed", error.message);
     return false;
   }
-  return Boolean(data);
+  const rows = Array.isArray(data) ? data.length : data ? 1 : 0;
+  return rows > 0 || (count ?? 0) > 0;
 }
 
 /** Clear a failed claim so a later visit can try again (no busy-loop retries). */

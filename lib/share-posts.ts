@@ -159,6 +159,40 @@ export function topMetrics(stats: ShareCardStats, n = 2): string[] {
     .map((m) => pluralize(m.value, m.singular, m.plural));
 }
 
+/** Labeled scouting metrics for story / banner exports (plain-language context). */
+export interface ScoutingMetric {
+  label: string;
+  value: number;
+  display: string;
+}
+
+/** Top non-zero GitHub signals with full labels, ranked by magnitude. */
+export function topScoutingMetrics(
+  stats: ShareCardStats,
+  n = 4,
+): ScoutingMetric[] {
+  const candidates: { label: string; value: number }[] = [
+    { label: "Contributions", value: stats.contributions },
+    { label: "Commits", value: stats.commits },
+    { label: "Code reviews", value: stats.reviews },
+    { label: "PRs merged", value: stats.pullRequestsMerged },
+    { label: "Issues closed", value: stats.issuesClosed },
+    { label: "Stars earned", value: stats.totalStars },
+    { label: "Followers", value: stats.followers },
+    { label: "Public repos", value: stats.publicRepos },
+  ];
+
+  return candidates
+    .filter((m) => m.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, n)
+    .map((m) => ({
+      label: m.label,
+      value: m.value,
+      display: m.value.toLocaleString("en-US"),
+    }));
+}
+
 function formatMetricLine(metrics: string[]): string {
   return metrics.join(" · ");
 }

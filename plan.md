@@ -115,36 +115,37 @@ across the whole range, not just at the extremes.
 
 ## 5. Ability — Fixed List, Rules-Based Decision Tree
 
-25 abilities, MECE, evaluated **top-down, first match wins**. Every profile
-resolves to exactly one ability (the last two entries are the safety net).
-Implement as an ordered array of `{name, test(stats) => bool, description}`
-and iterate until one test passes.
+25 abilities, MECE, evaluated **top-down, first match wins**. Order is
+**rarity-first**: scarce reach/outlier signals shadow common rhythm and tenure
+labels. Every profile resolves to exactly one ability (the last two entries
+are the safety net). Implement as an ordered array of
+`{name, test(stats) => bool, description}` and iterate until one test passes.
 
 | # | Ability | Trigger condition |
 |---|---|---|
-| 1 | Night Owl | >40% commits between 12am-5am |
-| 2 | Early Bird | >40% commits between 5am-9am |
-| 3 | Weekend Warrior | >40% commits on Sat/Sun |
-| 4 | Comeback Kid | 90+ day dormant gap, then renewed activity in last 90 days |
-| 5 | Burst Mode | High variance in daily contribution counts (spiky, no long dormancy) |
+| 1 | Viral Hit | Top single repo's stars ≫ rest of profile combined |
+| 2 | Crowd Favorite | Aggregate stars top percentile, no single dominant repo |
+| 3 | Influencer | Followers high relative to own contribution volume |
+| 4 | Rising Star | Account age <1 year AND top-percentile contributions/stars |
+| 5 | Comeback Kid | 90+ day dormant gap, then renewed activity in last 90 days |
 | 6 | Streak Master | Longest streak ≥100 consecutive days |
-| 7 | Steady Grinder | Low variance, no gaps >7 days, moderate-high volume |
-| 8 | Veteran | Account age ≥5 years |
-| 9 | Rising Star | Account age <1 year AND top-percentile contributions/stars |
-| 10 | Prolific | Total contributions top percentile, not otherwise caught |
-| 11 | Viral Hit | Top single repo's stars ≫ rest of profile combined |
-| 12 | Crowd Favorite | Aggregate stars top percentile, no single dominant repo |
-| 13 | Influencer | Followers high relative to own contribution volume |
-| 14 | Community Pillar | Code reviews given, top percentile |
-| 15 | Mentor | High reviews AND high followers together |
-| 16 | First Responder | Fast average issue close/response turnaround |
-| 17 | Bug Hunter | High issue open/close volume, turnaround not notably fast |
-| 18 | Polyglot | 5+ languages, meaningfully even distribution |
-| 19 | Specialist | One language >90% of activity |
-| 20 | Architect | High repo count |
-| 21 | Perfectionist | Few repos, high stars-per-repo ratio |
-| 22 | Solo Artist | High solo output, low collaboration signals |
-| 23 | Team Player | Collaboration signals high relative to solo commit output |
+| 7 | Prolific | Total contributions top percentile, not otherwise caught |
+| 8 | Community Pillar | Code reviews given, top percentile |
+| 9 | Mentor | High reviews AND high followers together |
+| 10 | First Responder | Fast average issue close/response turnaround |
+| 11 | Bug Hunter | High issue open/close volume, turnaround not notably fast |
+| 12 | Perfectionist | Few repos, high stars-per-repo ratio |
+| 13 | Architect | High repo count |
+| 14 | Burst Mode | High variance in daily contribution counts (spiky, no long dormancy) |
+| 15 | Steady Grinder | Low variance, no gaps >7 days, moderate-high volume |
+| 16 | Weekend Warrior | >40% commits on Sat/Sun |
+| 17 | Night Owl | >40% commits between 12am-5am |
+| 18 | Early Bird | >40% commits between 5am-9am |
+| 19 | Polyglot | 5+ languages, meaningfully even distribution |
+| 20 | Specialist | One language >90% of activity |
+| 21 | Solo Artist | High solo output, low collaboration signals |
+| 22 | Team Player | Collaboration signals high relative to solo commit output |
+| 23 | Veteran | Account age ≥5 years |
 | 24 | Balanced | No signal reaches top/bottom percentile on any axis above |
 | 25 | Newcomer (catch-all) | Doesn't meet any threshold above |
 

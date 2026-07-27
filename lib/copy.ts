@@ -90,6 +90,20 @@ export const COPY = {
     },
   },
 
+  nav: {
+    starLabel: "Star us on GitHub",
+    starLabelShort: "Star us",
+    starAria: "Star us on GitHub",
+  },
+
+  footer: {
+    creditPrefix: "Created by",
+    navLabel: "Creator links",
+    email: "Email",
+    github: "GitHub",
+    linkedin: "LinkedIn",
+  },
+
   prefs: {
     themeToLight: "Switch to Authentic (day) theme",
     themeToDark: "Switch to Dark (night) theme",
@@ -102,6 +116,7 @@ export const COPY = {
     copyImage: "Copy image",
     downloadPng: "Download PNG",
     downloadStory: "Download story",
+    downloadBanner: "Download banner",
     copyLink: "Copy link",
     shareLinkedIn: "Share on LinkedIn",
     shareX: "Share on X",
@@ -109,9 +124,49 @@ export const COPY = {
     copiedImage: "Copied to clipboard",
     copiedLink: "Link copied",
     saved: "Saved",
+    bannerReady: "Banner saved — attach it to your post",
     popupBlocked: "Popup blocked — allow popups to post",
     error: "Couldn't export — try again",
     storyTagline: "YOUR GITHUB, SCANNED",
     storyCta: "TRY YOUR CARD ON POKEGIT.DEV →",
+    bannerTagline: "GITHUB → POKEDEX CARD",
+    bannerCta: "SCAN YOURS ON POKEGIT.DEV →",
+  },
+
+  docs: {
+    navLabel: "GUIDE",
+    homeLink: "how the dex works →",
+    kicker: "field guide",
+    title: "PokeGit DEX",
+    intro:
+      "Every public GitHub profile maps onto typing, base stats, one ability, and two moves. This page is the reference for those rules — the same numbers the scanner uses.",
+    pipelineLead: "GitHub data becomes derived signals, then each system reads from those signals:",
+    sections: {
+      typing: "Typing",
+      stats: "Base stats",
+      ability: "Ability ladder",
+      moves: "Move bank",
+      caveats: "How measurement works",
+      languages: "Language → type",
+    },
+    typingRule:
+      "Primary type comes from the #1 language by bytes. A secondary type appears only when the #2 language has ≥5% share and maps to a different type. Programming languages are preferred over markup when any exist. Unmapped languages fall back to a hue wheel from their linguist color.",
+    abilityRule:
+      "Abilities are checked top-down. The first matching rule wins — earlier entries shadow later ones on purpose.",
+    movesRule:
+      "Each signal family has up to three tiered moves. The scanner keeps the highest tier per signal, ranks by strength, then fills two slots from different categories when possible. Sparse profiles get a Normal default per category.",
+    caveats: [
+      "Language bytes are sampled from the top 40 starred non-fork repos.",
+      "Commit timing and message length come from up to 5 recently pushed repos.",
+      "Repo lists cap at 1,000 public repos (10 pages × 100); large accounts may be truncated.",
+      "Only public profile data is read. Private repos and private activity are invisible.",
+      "Flavor text is generated once per username and cached; abilities and moves are flavor labels with no battle mechanics.",
+    ],
+    languageSearch: "Filter languages…",
+    languageAllTypes: "All types",
+    abilityExpand: "Condition",
+    moveDefaultLabel: "Sparse-profile default",
+    hueFallback:
+      "Languages missing from the hand table get a type from their linguist hue (30° buckets). Greyscale falls back to Normal.",
   },
 } as const;

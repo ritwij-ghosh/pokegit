@@ -1,17 +1,13 @@
 /**
- * Derives a usable palette from a language's linguist color.
+ * Derives a usable palette for the card face.
  *
- * plan.md section 7 is explicit that this is not a hex-for-hex swap: raw
- * linguist colors are picked for legibility as 10px dots on github.com, not as
- * full card surfaces. Several are near-grey (C is #555555), several are
- * eye-searing (JavaScript is #f1e05a). Both need shaping before they can carry
- * a card.
+ * Card surfaces are painted from the Pokemon type color — not the language
+ * linguist hex. TypeScript is Electric but linguist-blue; Python is Grass but
+ * linguist-blue. Language identity stays on the language badge; the card body
+ * must match the type label (Electric → yellow, Water → blue, …).
  *
- * The rules:
- *  - Very desaturated languages borrow chroma from their Pokemon type color,
- *    so C reads as steel-blue rather than dead grey while still being C.
- *  - Saturation and lightness are clamped into a band that renders well on a
- *    card face, in both the pale body area and the saturated banner.
+ * `languageHex` is retained in the signature for call-site compatibility and
+ * possible future accent use; saturation/lightness are shaped from the type.
  */
 
 import { POKEMON_TYPE_COLORS } from "@/lib/language-types";
@@ -104,50 +100,15 @@ export function hslToHex({ h, s, l }: Hsl): string {
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-/** Shortest-path hue interpolation, so red + magenta does not detour via green. */
-function mixHue(a: number, b: number, t: number): number {
-  const delta = ((b - a + 540) % 360) - 180;
-  return (a + delta * t + 360) % 360;
-}
-
-/** Below this saturation a language color cannot carry a card on its own. */
-const CHROMA_FLOOR = 0.22;
-/** Below this there is no meaningful hue to preserve at all (pure grey). */
-const ACHROMATIC = 0.06;
-
 export function derivePalette(
-  languageHex: string,
+  _languageHex: string,
   pokemonType: PokemonType,
 ): CardPalette {
-  const language = hexToHsl(languageHex);
   const type = hexToHsl(POKEMON_TYPE_COLORS[pokemonType]);
+  const h = type.h;
+  const s = clamp(type.s, 0.48, 0.92);
 
-  // Rescue near-grey languages by pulling them toward their type's hue.
-  // A pure grey has no hue to interpolate from — interpolating out of h=0
-  // would drag it through magenta — so take the type hue outright.
-  const rescue =
-    language.s < CHROMA_FLOOR
-      ? clamp(1 - language.s / CHROMA_FLOOR, 0, 1) * 0.8
-      : 0;
-
-  const h =
-    language.s < ACHROMATIC
-      ? type.h
-      : rescue > 0
-        ? mixHue(language.h, type.h, rescue)
-        : language.h;
-
-  // Saturation is rebuilt rather than inherited: linguist colors range from
-  // dead grey to fully blown out, and a card needs a predictable band.
-  const s = clamp(language.s * (1 - rescue) + type.s * rescue, 0.42, 0.92);
-
-  // Lightness is fixed per surface. Inheriting the language's own lightness
-  // made dark languages produce muddy cards and pale ones produce invisible
-  // frames; only hue and chroma should carry the language's identity.
-  // The reference cards separate their frame from their body mainly by hue
-  // (yellow border, orange body). Working from a single language hue, that
-  // separation has to come from value and chroma instead: a vivid frame
-  // against a body that runs pale at the top into saturated at the bottom.
+  // Lightness is fixed per surface so every type lands in a printable band.
   return {
     accent: hslToHex({ h, s: clamp(s * 1.05, 0.5, 0.9), l: 0.45 }),
     deep: hslToHex({ h, s: clamp(s, 0.45, 0.85), l: 0.22 }),

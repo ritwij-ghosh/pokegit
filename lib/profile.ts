@@ -110,8 +110,8 @@ export async function getPokeGitProfile(
   try {
     const cached = await unstable_cache(
       () => buildCachedProfile(login),
-      // v3: cache move ids only; hydrate name/description from MOVE_BANK on read.
-      ["pokegit-profile", "v3", login],
+      // v4: rarity-first ability ladder; move ids still hydrated from MOVE_BANK on read.
+      ["pokegit-profile", "v4", login],
       { revalidate: 3600, tags: [`profile:${login}`] },
     )();
     return hydrateProfile(cached);

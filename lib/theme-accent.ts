@@ -43,7 +43,7 @@ export function themeAccent(
 /**
  * Walks lightness in `direction` until the color clears MIN_CONTRAST against
  * `backdrop`. Stepping lightness rather than blending toward black/white keeps
- * the hue intact, which matters because the hue is the language's identity.
+ * the hue intact, which matters because the hue is the type-anchored identity.
  */
 function solveLightness(
   base: { h: number; s: number; l: number },

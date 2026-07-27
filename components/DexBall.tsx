@@ -11,11 +11,16 @@ export function DexBall({
   size = 24,
   className,
   title,
+  variant = "filled",
 }: {
-  size?: number;
+  size?: number | string;
   className?: string;
   title?: string;
+  /** Outline keeps the silhouette without the accent fill. */
+  variant?: "filled" | "outline";
 }) {
+  const outline = variant === "outline";
+
   return (
     <svg
       viewBox="0 0 32 32"
@@ -26,25 +31,40 @@ export function DexBall({
       aria-label={title}
       aria-hidden={title ? undefined : true}
     >
-      <circle cx="16" cy="16" r="14" fill="var(--surface)" />
-      <path d="M2 16a14 14 0 0 1 28 0Z" fill="var(--accent)" />
+      {!outline && (
+        <>
+          <circle cx="16" cy="16" r="14" fill="var(--surface)" />
+          <path d="M2 16a14 14 0 0 1 28 0Z" fill="var(--accent)" />
 
-      {/* Stepped highlight, top-left, to read as a pixel specular. */}
-      <rect x="7" y="6" width="4" height="2" fill="rgba(255,255,255,0.5)" />
-      <rect x="6" y="8" width="2" height="3" fill="rgba(255,255,255,0.32)" />
+          {/* Stepped highlight, top-left, to read as a pixel specular. */}
+          <rect x="7" y="6" width="4" height="2" fill="rgba(255,255,255,0.5)" />
+          <rect x="6" y="8" width="2" height="3" fill="rgba(255,255,255,0.32)" />
 
-      {/* The circle edge at y=14..18 is within 0.15px of vertical, so a plain
-          rect matches the silhouette and the outer stroke hides the rest. */}
-      <rect x="2.1" y="14" width="27.8" height="4" fill="var(--ink)" />
+          {/* The circle edge at y=14..18 is within 0.15px of vertical, so a plain
+              rect matches the silhouette and the outer stroke hides the rest. */}
+          <rect x="2.1" y="14" width="27.8" height="4" fill="var(--ink)" />
+        </>
+      )}
 
       <circle
         cx="16"
         cy="16"
         r="14"
         fill="none"
-        stroke="var(--ink)"
-        strokeWidth="3"
+        stroke={outline ? "currentColor" : "var(--ink)"}
+        strokeWidth={outline ? 2.25 : 3}
       />
+
+      {outline && (
+        <line
+          x1="2"
+          y1="16"
+          x2="30"
+          y2="16"
+          stroke="currentColor"
+          strokeWidth="2.25"
+        />
+      )}
 
       <rect
         x="11.5"
@@ -52,9 +72,9 @@ export function DexBall({
         width="9"
         height="9"
         transform="rotate(45 16 16)"
-        fill="var(--surface)"
-        stroke="var(--ink)"
-        strokeWidth="2.5"
+        fill={outline ? "none" : "var(--surface)"}
+        stroke={outline ? "currentColor" : "var(--ink)"}
+        strokeWidth={outline ? 2.25 : 2.5}
       />
     </svg>
   );

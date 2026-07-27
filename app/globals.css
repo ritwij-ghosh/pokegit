@@ -187,6 +187,23 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+/* Brief highlight when jumping to a DEX docs section from the pipeline strip. */
+@keyframes docs-section-flash {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent-soft);
+  }
+  35% {
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.docs-section-flash {
+  animation: docs-section-flash 1.4s ease-out;
+}
+
 /* ---------------------------------------------------------------------------
    Zone backgrounds. Applied only to hero and empty-state panels - never behind
    dense text, where the texture would fight the pixel body font.
@@ -237,6 +254,31 @@ body {
   animation: pokegit-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Landing demo cards — GitFut-style bottom-anchored horizontal fan. */
+.demo-fan-card {
+  transform: translateX(-50%) translate(var(--fan-x), var(--fan-y))
+    rotate(var(--fan-r));
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), z-index 0s;
+}
+
+.demo-fan-card:hover,
+.demo-fan-card:focus-visible {
+  z-index: 50;
+  transform: translateX(-50%) translate(var(--fan-x), calc(var(--fan-y) - 10px))
+    rotate(var(--fan-r)) scale(1.04);
+}
+
+@media (max-width: 860px) {
+  .demo-fan-card {
+    transform: none;
+  }
+
+  .demo-fan-card:hover,
+  .demo-fan-card:focus-visible {
+    transform: none;
+  }
+}
+
 @keyframes dex-ball-spin {
   from {
     transform: rotate(0deg);
@@ -268,7 +310,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .rise,
   .dex-ball-spin,
-  .dex-blink {
+  .dex-blink,
+  .docs-section-flash {
     animation: none;
+  }
+
+  .demo-fan-card {
+    transition: none;
   }
 }

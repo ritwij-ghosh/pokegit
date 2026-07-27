@@ -1,32 +1,106 @@
 /*
  * Offscreen 9:16 story canvas used only for export. Sized in device pixels
  * (1080×1920) so the captured PNG matches Instagram / Stories dimensions.
+ * Theme vars come from lib/export-theme.ts (--export-*).
  */
 
 .card-story {
+  --export-accent: #dab40b;
+  --export-deep: #4a3a08;
+  --export-banner: #e0c43a;
+  --export-face: #f7ecba;
+  --export-face-deep: #d4b84a;
+  --export-ink: #1a1408;
+  --export-glow: #e0c43a;
+  --export-frame: #f0d45c;
+
+  position: relative;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 1080px;
   height: 1920px;
-  padding: 120px 72px 100px;
-  color: #f4f0e4;
+  /*
+   * Extra vertical inset so Instagram / Stories chrome (profile strip at top,
+   * reply bar at bottom) doesn't cover the content.
+   */
+  padding: 160px 72px 180px;
+  overflow: hidden;
+  color: #f7f2e6;
   background:
     radial-gradient(
-      58% 42% at 50% 46%,
-      color-mix(in srgb, var(--story-glow) 34%, transparent) 0%,
-      transparent 72%
+      70% 50% at 50% 38%,
+      color-mix(in srgb, var(--export-glow) 42%, transparent) 0%,
+      transparent 68%
     ),
-    radial-gradient(120% 80% at 50% 100%, #1a1430 0%, #07060c 55%, #030208 100%);
+    linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--export-deep) 70%, #0a0810) 0%,
+      color-mix(in srgb, var(--export-deep) 90%, black) 42%,
+      #06040a 100%
+    );
   font-family: var(--font-silkscreen), ui-monospace, monospace;
+  isolation: isolate;
+}
+
+.card-story__watermark {
+  position: absolute;
+  z-index: 0;
+  top: -20%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--export-face) 55%, white);
+  opacity: 0.07;
+  transform: rotate(-24deg);
+  -webkit-mask-image: var(--export-watermark);
+  mask-image: var(--export-watermark);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  -webkit-mask-size: 110px 110px;
+  mask-size: 110px 110px;
+}
+
+.card-story__glare {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      48% 36% at 72% 22%,
+      rgba(255, 255, 255, 0.12) 0%,
+      transparent 58%
+    ),
+    linear-gradient(
+      122deg,
+      transparent 28%,
+      color-mix(in srgb, var(--export-accent) 12%, #5ce1ff) 40%,
+      rgba(255, 255, 255, 0.14) 46%,
+      color-mix(in srgb, var(--export-banner) 12%, #ffe56a) 52%,
+      color-mix(in srgb, var(--export-accent) 10%, #ff7ad9) 58%,
+      transparent 74%
+    );
+  mix-blend-mode: soft-light;
+  opacity: 0.28;
+}
+
+.card-story__brand,
+.card-story__stage,
+.card-story__meta,
+.card-story__footer,
+.card-story-stats {
+  position: relative;
+  z-index: 2;
 }
 
 .card-story__brand {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
 }
 
 .card-story__wordmark {
@@ -38,7 +112,7 @@
 }
 
 .card-story__wordmark-tail {
-  color: #4ade80;
+  color: var(--export-glow);
 }
 
 .card-story__tagline {
@@ -46,7 +120,7 @@
   letter-spacing: 0.28em;
   text-indent: 0.28em;
   text-transform: uppercase;
-  color: rgba(244, 240, 228, 0.72);
+  color: color-mix(in srgb, var(--export-face) 70%, transparent);
 }
 
 .card-story__stage {
@@ -56,55 +130,157 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin: 36px 0;
+  margin: 16px 0 8px;
+  min-height: 0;
+  flex: 0 0 auto;
 }
 
 .card-story__glow {
   position: absolute;
-  inset: 18% 12%;
+  inset: 14% 10%;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--story-glow) 45%, transparent) 0%,
+    color-mix(in srgb, var(--export-glow) 55%, transparent) 0%,
     transparent 70%
   );
-  filter: blur(28px);
+  filter: blur(32px);
   pointer-events: none;
 }
 
 .card-story__card {
   position: relative;
   z-index: 1;
-  width: min(640px, 78%);
+  /* Match scouting / stats panel width so the composition reads as one column. */
+  width: min(720px, 88%);
   height: auto;
   border-radius: 18px;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 1px color-mix(in srgb, var(--export-frame) 40%, transparent),
+    0 0 48px color-mix(in srgb, var(--export-glow) 35%, transparent),
     0 40px 80px rgba(0, 0, 0, 0.55);
+}
+
+.card-story__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.card-story__ability {
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 26px;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 92%, white);
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.card-story__meta-line {
+  font-size: 17px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 62%, transparent);
+}
+
+.card-story-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+  width: min(720px, 88%);
+  margin-bottom: 20px;
+  padding: 20px 28px 16px;
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--export-face) 14%, transparent) 0%,
+      color-mix(in srgb, var(--export-deep) 55%, transparent) 100%
+    );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--export-frame) 35%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.card-story-stats__row {
+  display: grid;
+  grid-template-columns: 118px 1fr 56px;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-story-stats__label {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 70%, transparent);
+}
+
+.card-story-stats__track {
+  display: block;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.card-story-stats__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--export-accent),
+    var(--export-glow)
+  );
+  box-shadow: 0 0 10px color-mix(in srgb, var(--export-glow) 45%, transparent);
+}
+
+.card-story-stats__value {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: #f7f2e6;
+}
+
+.card-story-stats__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--export-frame) 28%, transparent);
+  font-size: 16px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--export-face) 72%, transparent);
+}
+
+.card-story-stats__total b {
+  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--export-glow);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--export-glow) 50%, transparent);
 }
 
 .card-story__footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
   text-align: center;
-}
-
-.card-story__ability {
-  font-family: var(--font-press-start), var(--font-silkscreen), monospace;
-  font-size: 28px;
-  letter-spacing: 0.16em;
-  text-indent: 0.16em;
-  text-transform: uppercase;
-  color: rgba(244, 240, 228, 0.92);
-  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
 }
 
 .card-story__cta {
   font-family: var(--font-press-start), var(--font-silkscreen), monospace;
-  font-size: 16px;
+  font-size: 15px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #4ade80;
+  color: var(--export-glow);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--export-glow) 40%, transparent);
 }

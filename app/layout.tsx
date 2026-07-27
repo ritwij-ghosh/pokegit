@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cabin, Press_Start_2P, Silkscreen } from "next/font/google";
 import "./globals.css";
 
+import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { THEME_BOOT } from "@/lib/prefs";
 
@@ -73,6 +74,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <SiteHeader />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

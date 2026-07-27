@@ -57,8 +57,9 @@ export const POKEMON_TYPE_COLORS: Record<PokemonType, string> = {
 /**
  * Hand-maintained language -> Pokemon type table.
  * Keys are canonical linguist language names.
+ * Exported so the DEX docs page can list the full mapping.
  */
-const LANGUAGE_TYPE_TABLE: Record<string, PokemonType> = {
+export const LANGUAGE_TYPE_TABLE: Record<string, PokemonType> = {
   // Scripting / dynamic
   Python: "Grass",
   "Jupyter Notebook": "Grass",

@@ -5,26 +5,36 @@ import { useEffect, useState } from "react";
 import { COPY } from "@/lib/copy";
 
 const CHAR_MS = 22;
+const MAX_POLL_MS = 90_000;
+
+type FlavorState =
+  | { status: "ready"; text: string; source: string }
+  | { status: "pending" }
+  | { status: "offline"; text: string };
 
 type Props = {
   username: string;
-  initial:
-    | { status: "ready"; text: string; source: string }
-    | { status: "pending" }
-    | { status: "offline"; text: string };
+  initial: FlavorState;
 };
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+function delayForAttempt(attempt: number) {
+  if (attempt < 8) return 500;
+  if (attempt < 20) return 1000;
+  return 2000;
+}
+
 /**
  * Shows a cached entry with a Pokédex-style typewriter, or in-theme pending
- * copy that polls until the fire-and-forget Groq write lands. Never triggers
- * generation itself.
+ * copy that polls until the write lands. If the page rendered pending (RSC
+ * work aborted), kicks the generate route once — claim/fill-once still guard
+ * double-generation.
  */
 export default function PokedexEntryText({ username, initial }: Props) {
-  const [state, setState] = useState(initial);
+  const [state, setState] = useState<FlavorState>(initial);
   const fullText =
     state.status === "ready" || state.status === "offline" ? state.text : null;
   const [visibleLength, setVisibleLength] = useState(0);
@@ -34,43 +44,71 @@ export default function PokedexEntryText({ username, initial }: Props) {
 
     let cancelled = false;
     let attempts = 0;
-    const maxAttempts = 20;
+    let timer: number | null = null;
+    const startedAt = Date.now();
+
+    const clearTimer = () => {
+      if (timer != null) {
+        window.clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    const schedule = (ms: number) => {
+      clearTimer();
+      timer = window.setTimeout(() => {
+        void poll();
+      }, ms);
+    };
 
     async function poll() {
+      if (cancelled) return;
       attempts += 1;
+
       try {
         const res = await fetch(
           `/api/pokedex/${encodeURIComponent(username)}`,
           { cache: "no-store" },
         );
-        if (!res.ok) return;
-        const body = (await res.json()) as {
-          status: string;
-          text?: string;
-          source?: string;
-        };
         if (cancelled) return;
-        if (body.status === "ready" && body.text) {
-          setState({
-            status: "ready",
-            text: body.text,
-            source: body.source ?? "cache",
-          });
-          return;
+
+        if (res.ok) {
+          const body = (await res.json()) as {
+            status: string;
+            text?: string;
+            source?: string;
+          };
+          if (cancelled) return;
+          if (body.status === "ready" && body.text) {
+            setState({
+              status: "ready",
+              text: body.text,
+              source: body.source ?? "cache",
+            });
+            return;
+          }
         }
       } catch {
         // ignore transient poll errors
       }
 
-      if (!cancelled && attempts < maxAttempts) {
-        window.setTimeout(poll, attempts < 5 ? 800 : 1500);
-      }
+      if (cancelled) return;
+      if (Date.now() - startedAt >= MAX_POLL_MS) return;
+      schedule(delayForAttempt(attempts));
     }
 
-    const timer = window.setTimeout(poll, 600);
+    // Recover from aborted server-side after()/HMR: one guarded generate kick.
+    void fetch(`/api/pokedex/${encodeURIComponent(username)}/generate`, {
+      method: "POST",
+      cache: "no-store",
+    }).catch(() => {
+      // poller will still observe any later write
+    });
+
+    schedule(300);
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
+      clearTimer();
     };
   }, [username, state.status]);
 
@@ -99,10 +137,7 @@ export default function PokedexEntryText({ username, initial }: Props) {
   if (state.status === "pending") {
     return (
       <>
-        <div className="mb-1.5 flex flex-wrap items-center gap-2">
-          <span className="font-display text-[0.45rem] uppercase tracking-wider text-[var(--muted)]">
-            {COPY.profile.entryLabel}
-          </span>
+        <div className="mb-2">
           <span className="border border-[var(--border)] px-1.5 py-px text-[10px] text-[var(--muted)]">
             {COPY.profile.pendingBadge}
           </span>
@@ -121,19 +156,16 @@ export default function PokedexEntryText({ username, initial }: Props) {
 
   return (
     <>
-      <div className="mb-1.5 flex flex-wrap items-center gap-2">
-        <span className="font-display text-[0.45rem] uppercase tracking-wider text-[var(--muted)]">
-          {COPY.profile.entryLabel}
-        </span>
-        {showOffline && (
+      {showOffline && (
+        <div className="mb-2">
           <span
             className="border border-[var(--border)] px-1.5 py-px text-[10px] text-[var(--muted)]"
             title={COPY.profile.offlineHint}
           >
             {COPY.profile.offlineBadge}
           </span>
-        )}
-      </div>
+        </div>
+      )}
       <p
         className="text-xs leading-[1.85] text-[var(--foreground)] sm:text-sm sm:leading-[1.9]"
         aria-label={state.text}

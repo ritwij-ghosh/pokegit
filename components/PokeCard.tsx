@@ -340,8 +340,9 @@ export default function PokeCard({
                     setCustomImage(null);
                     if (fileInput.current) fileInput.current.value = "";
                   }}
-                  className="text-[11px] text-[var(--muted)] underline decoration-dotted
-                             underline-offset-4 transition hover:text-[var(--accent)]"
+                  className="font-card text-sm tracking-normal text-[var(--muted)]
+                             underline decoration-dotted underline-offset-4
+                             transition hover:text-[var(--accent)]"
                 >
                   reset to avatar
                 </button>

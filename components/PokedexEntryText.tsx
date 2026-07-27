@@ -142,7 +142,7 @@ export default function PokedexEntryText({ username, initial }: Props) {
             {COPY.profile.pendingBadge}
           </span>
         </div>
-        <p className="text-xs leading-[1.85] text-[var(--muted)] sm:text-sm sm:leading-[1.9]">
+        <p className="font-card text-base leading-relaxed tracking-normal text-[var(--muted)] sm:text-[1.0625rem] sm:leading-[1.65]">
           {COPY.profile.pendingEntry}
         </p>
       </>
@@ -167,7 +167,7 @@ export default function PokedexEntryText({ username, initial }: Props) {
         </div>
       )}
       <p
-        className="text-xs leading-[1.85] text-[var(--foreground)] sm:text-sm sm:leading-[1.9]"
+        className="font-card text-base leading-relaxed tracking-normal text-[var(--foreground)] sm:text-[1.0625rem] sm:leading-[1.65]"
         aria-label={state.text}
         aria-busy={typing}
       >

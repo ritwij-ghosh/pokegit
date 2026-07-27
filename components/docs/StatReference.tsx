@@ -20,7 +20,7 @@ export default function StatReference() {
           <dt className="font-display text-[0.55rem] uppercase text-[var(--foreground)]">
             {stat.label}
           </dt>
-          <dd className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
+          <dd className="mt-2 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
             {COPY.profile.statHints[stat.key]}
           </dd>
         </div>
@@ -29,7 +29,7 @@ export default function StatReference() {
         <dt className="font-display text-[0.55rem] uppercase text-[var(--foreground)]">
           {COPY.profile.bstLabel}
         </dt>
-        <dd className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
+        <dd className="mt-2 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
           {COPY.profile.bstHint} Each stat uses a log curve clamped to 1–255.
         </dd>
       </div>

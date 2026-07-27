@@ -17,6 +17,7 @@ export const COPY = {
   },
 
   home: {
+    hook: "Do you wanna be the very best?",
     submitIdle: "SCAN",
     submitPending: "SCANNING",
     inputPlaceholder: "github username",
@@ -94,6 +95,29 @@ export const COPY = {
     starLabel: "Star us on GitHub",
     starLabelShort: "Star us",
     starAria: "Star us on GitHub",
+    contactLabel: "CONTACT",
+  },
+
+  contact: {
+    kicker: "trainer mail",
+    title: "Contact the Dev",
+    intro:
+      "Got a feature idea, found a weird species, or just want to say hi? Write in — it lands in my inbox.",
+    formTitle: "Message",
+    nameLabel: "Name",
+    namePlaceholder: "your name",
+    emailLabel: "Reply-to email",
+    emailPlaceholder: "ash.ketchum@pokemon.com",
+    subjectLabel: "Subject",
+    subjectPlaceholder: "Feature Suggestion",
+    messageLabel: "Message",
+    messagePlaceholder: "what's on your mind?",
+    submitIdle: "SEND",
+    submitPending: "SENDING",
+    success: "Message delivered. Thanks for writing in!",
+    error: "Couldn't send — try again in a moment.",
+    linksTitle: "Find me",
+    linksIntro: "Or reach out directly.",
   },
 
   footer: {

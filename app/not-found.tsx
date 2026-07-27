@@ -6,7 +6,7 @@ import { COPY } from "@/lib/copy";
 
 export default function NotFound() {
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
+    <main className="tile-route flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
       <section className="gba-panel tile-route-faint w-full max-w-lg px-6 py-9 text-center sm:px-8">
         <div className="flex justify-center">
           <DexBall size={44} />
@@ -18,7 +18,7 @@ export default function NotFound() {
         <h1 className="mt-3 font-display text-[0.95rem] leading-relaxed text-[var(--foreground)]">
           {COPY.notFound.title}
         </h1>
-        <p className="mx-auto mt-4 max-w-sm text-xs leading-[1.9] text-[var(--muted)]">
+        <p className="mx-auto mt-4 max-w-sm font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
           {COPY.notFound.detail}
         </p>
 
@@ -28,8 +28,9 @@ export default function NotFound() {
 
         <Link
           href="/"
-          className="mt-6 inline-block text-[11px] text-[var(--muted)] underline
-                     decoration-dotted underline-offset-4 transition hover:text-[var(--accent)]"
+          className="mt-6 inline-block font-card text-sm tracking-normal text-[var(--muted)]
+                     underline decoration-dotted underline-offset-4 transition
+                     hover:text-[var(--accent)]"
         >
           {COPY.notFound.back}
         </Link>

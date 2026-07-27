@@ -52,9 +52,9 @@ export default function LanguageTypeTable() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={COPY.docs.languageSearch}
-          className="gba-field w-full max-w-sm px-3 py-2 text-sm"
+          className="gba-field w-full max-w-sm px-3 py-2 font-card text-sm tracking-normal"
         />
-        <p className="text-[11px] text-[var(--muted)]">
+        <p className="font-card text-xs tracking-normal text-[var(--muted)]">
           {filtered.length} language{filtered.length === 1 ? "" : "s"}
         </p>
       </div>
@@ -89,14 +89,16 @@ export default function LanguageTypeTable() {
       </div>
 
       {grouped.length === 0 ? (
-        <p className="text-sm text-[var(--muted)]">No languages match.</p>
+        <p className="font-card text-sm tracking-normal text-[var(--muted)]">
+          No languages match.
+        </p>
       ) : (
         <div className="space-y-5">
           {grouped.map(({ type, languages }) => (
             <div key={type}>
               <div className="mb-2 flex items-center gap-2">
                 <TypeBadge type={type} />
-                <span className="text-[11px] text-[var(--muted)]">
+                <span className="font-card text-xs tracking-normal text-[var(--muted)]">
                   {languages.length}
                 </span>
               </div>
@@ -111,7 +113,7 @@ export default function LanguageTypeTable() {
                       className="h-3 w-3 shrink-0 border border-[var(--border)]"
                       style={{ background: entry.color }}
                     />
-                    <span className="min-w-0 flex-1 truncate text-xs text-[var(--foreground)]">
+                    <span className="min-w-0 flex-1 truncate font-card text-sm tracking-normal text-[var(--foreground)]">
                       {entry.language}
                     </span>
                     <TypeChip type={entry.type} />

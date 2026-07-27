@@ -48,8 +48,8 @@ export default function UsernameForm({
           spellCheck={false}
           placeholder={COPY.home.inputPlaceholder}
           aria-label="GitHub username"
-          className="gba-field min-w-0 flex-1 px-3 py-3 text-sm text-[var(--foreground)]
-                     placeholder:text-[var(--muted)]"
+          className="gba-field min-w-0 flex-1 px-3 py-3 font-card text-base tracking-normal
+                     text-[var(--foreground)] placeholder:text-[var(--muted)]"
         />
         <button
           type="submit"
@@ -68,7 +68,7 @@ export default function UsernameForm({
         </button>
       </form>
 
-      <div className="mt-3 flex min-h-5 items-start gap-2 text-xs leading-relaxed">
+      <div className="mt-3 flex min-h-5 items-start gap-2 font-card text-sm leading-relaxed tracking-normal">
         {error ? (
           <span className="text-[var(--pokedex-red)]">{error}</span>
         ) : (

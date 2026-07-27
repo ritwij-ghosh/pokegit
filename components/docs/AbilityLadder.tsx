@@ -10,7 +10,7 @@ export default function AbilityLadder({ abilities }: { abilities: AbilityDoc[] }
 
   return (
     <div className="space-y-3">
-      <p className="border-l-4 border-[var(--accent)] bg-[var(--accent-soft)] px-3 py-2 text-xs leading-relaxed text-[var(--foreground)]">
+      <p className="border-l-4 border-[var(--accent)] bg-[var(--accent-soft)] px-3 py-2 font-card text-sm leading-relaxed tracking-normal text-[var(--foreground)]">
         {COPY.docs.abilityRule}
       </p>
 
@@ -31,7 +31,7 @@ export default function AbilityLadder({ abilities }: { abilities: AbilityDoc[] }
                     current === ability.priority ? null : ability.priority,
                   )
                 }
-                className={`mb-2 w-full border-2 px-3 py-2.5 text-left transition-colors ${
+                className={`gba-select mb-2 w-full border-2 px-3 py-2.5 text-left ${
                   isOpen
                     ? "border-[var(--ink)] bg-[var(--surface-raised)]"
                     : "border-[var(--border)] bg-[var(--surface)] hover:border-[var(--ink)]"
@@ -51,14 +51,14 @@ export default function AbilityLadder({ abilities }: { abilities: AbilityDoc[] }
                 </div>
                 {isOpen && (
                   <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3">
-                    <p className="text-xs leading-relaxed text-[var(--muted)]">
+                    <p className="font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
                       {ability.description}
                     </p>
                     <div>
                       <p className="mb-1 font-display text-[0.45rem] uppercase tracking-wider text-[var(--muted)]">
                         {COPY.docs.abilityExpand}
                       </p>
-                      <p className="text-xs leading-relaxed text-[var(--foreground)]">
+                      <p className="font-card text-sm leading-relaxed tracking-normal text-[var(--foreground)]">
                         {ability.condition}
                       </p>
                     </div>

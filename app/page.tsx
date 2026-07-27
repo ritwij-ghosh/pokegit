@@ -49,7 +49,11 @@ export default function Home() {
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-lg text-sm leading-[1.9] text-[var(--muted)]">
+              <h2 className="mt-6 max-w-lg font-display text-[0.85rem] leading-relaxed text-[var(--foreground)] sm:text-[0.95rem]">
+                {COPY.home.hook}
+              </h2>
+
+              <p className="mt-4 max-w-lg font-card text-base leading-relaxed tracking-normal text-[var(--muted)] sm:text-[1.0625rem] sm:leading-[1.65]">
                 {COPY.brand.tagline}
               </p>
 
@@ -69,14 +73,14 @@ export default function Home() {
           {COPY.home.highlights.map((item) => (
             <div
               key={item.label}
-              className="dex-panel flex gap-3 px-4 py-3 backdrop-blur-[2px]"
+              className="gba-select dex-panel flex gap-3 px-4 py-3 backdrop-blur-[2px]"
             >
               <DexBall size={16} className="mt-0.5 shrink-0" />
               <div className="min-w-0">
                 <dt className="font-display text-[0.55rem] leading-relaxed text-[var(--foreground)]">
                   {item.label}
                 </dt>
-                <dd className="mt-1.5 text-xs leading-relaxed text-[var(--muted)]">
+                <dd className="mt-1.5 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
                   {item.detail}
                 </dd>
               </div>
@@ -87,7 +91,7 @@ export default function Home() {
         <p className="text-center">
           <Link
             href="/docs"
-            className="text-[11px] tracking-wide text-[var(--muted)] underline
+            className="font-card text-sm tracking-normal text-[var(--muted)] underline
                        decoration-dotted underline-offset-4 transition-colors
                        hover:text-[var(--foreground)]"
           >

@@ -27,6 +27,13 @@ export default function SiteHeader() {
           >
             {COPY.docs.navLabel}
           </Link>
+          <Link
+            href="/contact"
+            className="font-display text-[0.5rem] uppercase tracking-wider text-[var(--muted)]
+                       transition-colors hover:text-[var(--foreground)]"
+          >
+            {COPY.nav.contactLabel}
+          </Link>
           <SoundToggle />
           <ThemeToggle />
           <GitHubStarLink />

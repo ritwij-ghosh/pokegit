@@ -48,7 +48,7 @@ export default function PipelineStrip() {
               <span className="font-display text-[0.55rem] uppercase leading-none text-[var(--foreground)]">
                 {stage.label}
               </span>
-              <span className="text-[10px] leading-snug text-[var(--muted)]">
+              <span className="font-card text-xs leading-snug tracking-normal text-[var(--muted)]">
                 {stage.short}
               </span>
             </button>

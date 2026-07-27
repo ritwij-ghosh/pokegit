@@ -342,7 +342,7 @@ export default function CardShareMenu({
       {status !== "idle" && statusText && (
         <p
           role="status"
-          className={`basis-full text-center text-[10px] leading-relaxed tracking-wide ${
+          className={`basis-full text-center font-card text-sm leading-relaxed tracking-normal ${
             status === "error"
               ? "text-[var(--pokedex-red)]"
               : "text-[var(--muted)]"

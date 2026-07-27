@@ -26,7 +26,7 @@ export default function MoveExplorer() {
 
   return (
     <div className="space-y-4">
-      <p className="text-xs leading-relaxed text-[var(--muted)]">
+      <p className="font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
         {COPY.docs.movesRule}
       </p>
 
@@ -40,7 +40,7 @@ export default function MoveExplorer() {
               const next = moveLaddersByCategory(meta.id);
               setSignal(next[0]?.signal ?? "");
             }}
-            className={`border-2 px-2.5 py-1.5 font-display text-[0.45rem] uppercase tracking-wider ${
+            className={`gba-select border-2 px-2.5 py-1.5 font-display text-[0.45rem] uppercase tracking-wider ${
               category === meta.id
                 ? "border-[var(--ink)] bg-[var(--accent)] text-[var(--accent-contrast)]"
                 : "border-[var(--border)] bg-[var(--surface-raised)] text-[var(--muted)] hover:border-[var(--ink)]"
@@ -57,14 +57,14 @@ export default function MoveExplorer() {
             key={ladder.signal}
             type="button"
             onClick={() => setSignal(ladder.signal)}
-            className={`inline-flex items-center gap-2 border-2 px-2 py-1 text-left ${
+            className={`gba-select inline-flex items-center gap-2 border-2 px-2 py-1 text-left ${
               activeSignal === ladder.signal
                 ? "border-[var(--ink)] bg-[var(--surface-raised)]"
                 : "border-[var(--border)] hover:border-[var(--ink)]"
             }`}
           >
             <TypeChip type={ladder.type} />
-            <span className="text-[11px] text-[var(--foreground)]">
+            <span className="font-card text-sm tracking-normal text-[var(--foreground)]">
               {formatSignalLabel(ladder.signal)}
             </span>
           </button>
@@ -103,12 +103,12 @@ export default function MoveExplorer() {
                       {move.name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-[11px] tabular-nums text-[var(--muted)]">
+                  <div className="flex items-center gap-3 font-card text-sm tabular-nums tracking-normal text-[var(--muted)]">
                     <span>pwr {move.power}</span>
                     <span>{formatMoveThreshold(move)}</span>
                   </div>
                 </div>
-                <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
+                <p className="mt-2 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
                   {move.description}
                 </p>
               </li>
@@ -125,11 +125,11 @@ export default function MoveExplorer() {
           <span className="font-display text-[0.55rem] uppercase text-[var(--foreground)]">
             {fallback.name}
           </span>
-          <span className="text-[11px] text-[var(--muted)]">
+          <span className="font-card text-sm tracking-normal text-[var(--muted)]">
             Normal · pwr {fallback.power}
           </span>
         </div>
-        <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
+        <p className="mt-2 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
           {fallback.description}
         </p>
       </div>

@@ -54,10 +54,10 @@ export default function DocsPage() {
         <h1 className="mt-5 font-display text-sm uppercase leading-relaxed text-[var(--foreground)] sm:text-base">
           {COPY.docs.title}
         </h1>
-        <p className="mt-4 max-w-xl text-sm leading-[1.9] text-[var(--muted)]">
+        <p className="mt-4 max-w-xl font-card text-base leading-relaxed tracking-normal text-[var(--muted)] sm:text-[1.0625rem] sm:leading-[1.65]">
           {COPY.docs.intro}
         </p>
-        <p className="mt-4 text-xs leading-relaxed text-[var(--muted)]">
+        <p className="mt-4 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
           {COPY.docs.pipelineLead}
         </p>
         <div className="mt-5">
@@ -67,7 +67,7 @@ export default function DocsPage() {
 
       <div className="mt-6 space-y-5">
         <DocsPanel id="typing" title={COPY.docs.sections.typing}>
-          <p className="text-xs leading-relaxed text-[var(--muted)]">
+          <p className="font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
             {COPY.docs.typingRule}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -75,7 +75,7 @@ export default function DocsPage() {
               <TypeBadge key={type} type={type} />
             ))}
           </div>
-          <p className="mt-4 text-[11px] leading-relaxed text-[var(--muted)]">
+          <p className="mt-4 font-card text-[0.8125rem] leading-relaxed tracking-normal text-[var(--muted)]">
             {COPY.docs.hueFallback}
           </p>
           <div className="mt-6 border-t-2 border-[var(--border)] pt-5">
@@ -99,11 +99,11 @@ export default function DocsPage() {
         </DocsPanel>
 
         <DocsPanel id="caveats" title={COPY.docs.sections.caveats}>
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {COPY.docs.caveats.map((caveat) => (
               <li
                 key={caveat}
-                className="flex gap-2 text-xs leading-[1.9] text-[var(--muted)]"
+                className="flex gap-2 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]"
               >
                 <span aria-hidden className="text-[var(--accent)]">
                   -

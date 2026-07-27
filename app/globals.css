@@ -113,6 +113,7 @@ body {
 }
 
 .gba-btn {
+  position: relative;
   border: 3px solid var(--ink);
   border-radius: 2px;
   background: var(--surface);
@@ -120,12 +121,22 @@ body {
     inset 0 0 0 2px var(--panel-inset),
     3px 3px 0 0 var(--shadow-hard);
   transition:
-    transform 80ms steps(2, end),
-    box-shadow 80ms steps(2, end),
-    background-color 120ms ease;
+    transform 100ms steps(2, end),
+    box-shadow 100ms steps(2, end),
+    background-color 120ms steps(2, end),
+    filter 120ms steps(2, end);
 }
 
+/* Hover lifts the button off its shadow, then the select frame blinks on. */
 .gba-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  background: var(--surface-raised);
+  box-shadow:
+    inset 0 0 0 2px var(--panel-inset),
+    5px 5px 0 0 var(--shadow-hard);
+}
+
+.gba-btn:focus-visible:not(:disabled) {
   background: var(--surface-raised);
 }
 
@@ -133,6 +144,7 @@ body {
 .gba-btn:active:not(:disabled) {
   transform: translate(3px, 3px);
   box-shadow: inset 0 0 0 2px var(--panel-inset);
+  transition-duration: 40ms;
 }
 
 .gba-btn:disabled {
@@ -145,9 +157,10 @@ body {
   color: var(--accent-contrast);
 }
 
-.gba-btn-primary:hover:not(:disabled) {
+.gba-btn-primary:hover:not(:disabled),
+.gba-btn-primary:focus-visible:not(:disabled) {
   background: var(--accent);
-  filter: brightness(1.08);
+  filter: brightness(1.1);
 }
 
 .gba-field {
@@ -156,6 +169,9 @@ body {
   background: var(--surface);
   box-shadow: inset 2px 2px 0 0 var(--panel-inset);
   outline: none;
+  transition:
+    border-color 100ms steps(2, end),
+    box-shadow 100ms steps(2, end);
 }
 
 .gba-field:focus {
@@ -163,6 +179,58 @@ body {
   box-shadow:
     inset 2px 2px 0 0 var(--panel-inset),
     0 0 0 3px var(--accent-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   GBA menu “selection” frame.
+
+   Dual ink/highlight ring that blinks in stepped frames — the handheld bag /
+   start-menu cursor feel. Applied automatically to .gba-btn on hover/focus,
+   and via .gba-select on links, chips, and other interactive chrome.
+--------------------------------------------------------------------------- */
+
+@keyframes gba-select-blink {
+  0%,
+  49% {
+    border-color: var(--sun-yellow);
+    box-shadow:
+      0 0 0 2px var(--ink),
+      inset 0 0 0 1px var(--ink);
+  }
+  50%,
+  100% {
+    border-color: var(--accent-contrast);
+    box-shadow:
+      0 0 0 2px var(--ink),
+      inset 0 0 0 1px var(--sun-yellow);
+  }
+}
+
+.gba-select {
+  position: relative;
+  transition:
+    color 100ms steps(2, end),
+    background-color 100ms steps(2, end),
+    border-color 100ms steps(2, end),
+    opacity 100ms steps(2, end);
+}
+
+/* Selection ring drawn outside the control so it never clips content. */
+.gba-btn:hover:not(:disabled)::after,
+.gba-btn:focus-visible:not(:disabled)::after,
+.gba-select:hover::after,
+.gba-select:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 2px solid var(--sun-yellow);
+  border-radius: 1px;
+  box-shadow:
+    0 0 0 2px var(--ink),
+    inset 0 0 0 1px var(--ink);
+  pointer-events: none;
+  animation: gba-select-blink 0.45s steps(1, end) infinite;
+  z-index: 2;
 }
 
 /* The profile's identity color is derived from its top language, so it has to
@@ -205,8 +273,8 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Zone backgrounds. Applied only to hero and empty-state panels - never behind
-   dense text, where the texture would fight the pixel body font.
+   Zone backgrounds. Full-page route backdrops (landing, profile, loading) and
+   faint fills inside empty-state panels. Keep dense copy on solid surfaces.
 --------------------------------------------------------------------------- */
 
 .tile-route {
@@ -318,7 +386,22 @@ body {
     animation: none;
   }
 
+  .gba-btn:hover:not(:disabled)::after,
+  .gba-btn:focus-visible:not(:disabled)::after,
+  .gba-select:hover::after,
+  .gba-select:focus-visible::after {
+    animation: none;
+    border-color: var(--sun-yellow);
+  }
+
+  .gba-btn,
+  .gba-select,
+  .gba-field,
   .demo-fan-card {
     transition: none;
+  }
+
+  .gba-btn:hover:not(:disabled) {
+    transform: none;
   }
 }

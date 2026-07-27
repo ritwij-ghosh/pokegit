@@ -99,8 +99,10 @@ function Panel({
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="dex-divider flex items-baseline justify-between gap-4 py-2 last:border-0">
-      <span className="text-xs leading-relaxed text-[var(--muted)]">{label}</span>
-      <span className="shrink-0 text-xs tabular-nums text-[var(--foreground)]">
+      <span className="font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
+        {label}
+      </span>
+      <span className="shrink-0 font-card text-sm tabular-nums tracking-normal text-[var(--foreground)]">
         {value}
       </span>
     </div>
@@ -110,7 +112,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 /** Chrome, so it gets the full box: thick ink border and a hard shadow. */
 function ErrorState({ title, detail }: { title: string; detail: string }) {
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
+    <main className="tile-route flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
       <section className="gba-panel tile-route-faint w-full max-w-lg px-6 py-8 text-center">
         <div className="flex justify-center">
           <DexBall size={40} />
@@ -121,7 +123,7 @@ function ErrorState({ title, detail }: { title: string; detail: string }) {
         <h1 className="mt-3 font-display text-[0.85rem] leading-relaxed text-[var(--foreground)]">
           {title}
         </h1>
-        <p className="mx-auto mt-4 max-w-sm text-xs leading-[1.9] text-[var(--muted)]">
+        <p className="mx-auto mt-4 max-w-sm font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
           {detail}
         </p>
         <Link
@@ -169,7 +171,7 @@ export default async function PokedexEntryPage({ params }: PageProps) {
 
   return (
     <main
-      className="type-accent mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8"
+      className="type-accent tile-route flex flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8"
       style={
         {
           "--accent-day": accent.day,
@@ -177,6 +179,7 @@ export default async function PokedexEntryPage({ params }: PageProps) {
         } as React.CSSProperties
       }
     >
+      <div className="mx-auto w-full max-w-7xl">
       <ScanChime key={profile.profile.login} />
 
       {/* Header — name, BST badge, tags, then full-width pokedex entry */}
@@ -196,7 +199,7 @@ export default async function PokedexEntryPage({ params }: PageProps) {
               >
                 {stats.total}
               </span>
-              <span className="mt-1.5 text-[9px] uppercase tracking-wider text-[var(--muted)]">
+              <span className="mt-1.5 font-display text-[9px] uppercase tracking-wider text-[var(--muted)]">
                 {COPY.profile.bstLabel}
               </span>
             </div>
@@ -206,7 +209,7 @@ export default async function PokedexEntryPage({ params }: PageProps) {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-3">
-                  <span className="shrink-0 text-[11px] tracking-wider text-[var(--muted)]">
+                  <span className="shrink-0 font-card text-xs tracking-normal text-[var(--muted)]">
                     {COPY.profile.dexPrefix} {dex}
                   </span>
                   <span className="h-0.5 flex-1 bg-[var(--border)]" />
@@ -230,10 +233,10 @@ export default async function PokedexEntryPage({ params }: PageProps) {
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <TypeBadge type={typing.primary} />
               {typing.secondary && <TypeBadge type={typing.secondary} />}
-              <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] text-[var(--muted)]">
+              <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 font-card text-xs tracking-normal text-[var(--muted)]">
                 {profile.profile.name ?? COPY.profile.unnamed}
               </span>
-              <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] text-[var(--muted)]">
+              <span className="border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 font-card text-xs tracking-normal text-[var(--muted)]">
                 {signals.accountAgeYears.toFixed(1)} {COPY.profile.ageSuffix}
               </span>
             </div>
@@ -267,12 +270,12 @@ export default async function PokedexEntryPage({ params }: PageProps) {
             </div>
             <CalcHint hint={COPY.profile.bstHint} className="mt-4 block">
               <div className="flex items-baseline justify-between border-t-2 border-[var(--border)] pt-3">
-                <span className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
+                <span className="font-display text-[0.5rem] uppercase tracking-wider text-[var(--muted)]">
                   BST
                 </span>
-                <span className="text-base tabular-nums text-[var(--foreground)]">
+                <span className="font-card text-lg tabular-nums tracking-normal text-[var(--foreground)]">
                   {stats.total}
-                  <span className="ml-1 text-[11px] text-[var(--muted)]">/ 1530</span>
+                  <span className="ml-1 font-card text-sm text-[var(--muted)]">/ 1530</span>
                 </span>
               </div>
             </CalcHint>
@@ -288,7 +291,7 @@ export default async function PokedexEntryPage({ params }: PageProps) {
               <div className="font-display text-[0.7rem] leading-relaxed text-[var(--type)]">
                 {ability.name}
               </div>
-              <p className="mt-2.5 text-xs leading-[1.9] text-[var(--muted)]">
+              <p className="mt-2.5 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)] sm:text-[0.9375rem] sm:leading-[1.65]">
                 {ability.description}
               </p>
             </div>
@@ -413,7 +416,7 @@ export default async function PokedexEntryPage({ params }: PageProps) {
                 <p className="mt-4 font-display text-[0.55rem] leading-relaxed text-[var(--foreground)]">
                   {COPY.empty.languages.title}
                 </p>
-                <p className="mx-auto mt-3 max-w-xs text-xs leading-[1.9] text-[var(--muted)]">
+                <p className="mx-auto mt-3 max-w-xs font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]">
                   {COPY.empty.languages.detail}
                 </p>
               </div>
@@ -435,7 +438,7 @@ export default async function PokedexEntryPage({ params }: PageProps) {
                   {signals.languages.slice(0, 6).map((lang) => (
                     <li
                       key={lang.name}
-                      className="flex items-center justify-between gap-3 text-xs"
+                      className="flex items-center justify-between gap-3 font-card text-sm tracking-normal"
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         <span
@@ -468,11 +471,11 @@ export default async function PokedexEntryPage({ params }: PageProps) {
           <h2 className="mb-3 font-display text-[0.5rem] uppercase tracking-wider text-[var(--muted)]">
             {COPY.profile.caveatsTitle}
           </h2>
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {profile.caveats.map((caveat) => (
               <li
                 key={caveat}
-                className="flex gap-2 text-[11px] leading-[1.9] text-[var(--muted)]"
+                className="flex gap-2 font-card text-sm leading-relaxed tracking-normal text-[var(--muted)]"
               >
                 <span aria-hidden className="text-[var(--accent)]">
                   -
@@ -483,6 +486,7 @@ export default async function PokedexEntryPage({ params }: PageProps) {
           </ul>
         </footer>
       )}
+      </div>
     </main>
   );
 }

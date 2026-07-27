@@ -26,10 +26,10 @@ export default function StatBar({
 
   const row = (
     <div className="grid grid-cols-[3.75rem_2.75rem_1fr] items-center gap-3">
-      <span className="text-[11px] uppercase tracking-wider text-[var(--muted)]">
+      <span className="font-display text-[0.5rem] uppercase tracking-wider text-[var(--muted)]">
         {abbreviation}
       </span>
-      <span className="text-right text-sm tabular-nums text-[var(--foreground)]">
+      <span className="text-right font-card text-base tabular-nums tracking-normal text-[var(--foreground)]">
         {value}
       </span>
       <div className="relative h-3 border-2 border-[var(--border)] bg-[var(--surface-raised)]">

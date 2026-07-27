@@ -31,13 +31,13 @@ export function writeTheme(theme: ThemeName) {
   window.dispatchEvent(new CustomEvent(PREFS_EVENT));
 }
 
-/** Sound is opt-in, so anything other than an explicit "on" reads as off. */
+/** Sound is on by default; only an explicit "off" mutes it. */
 export function readSound(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") return true;
   try {
-    return localStorage.getItem(SOUND_KEY) === "on";
+    return localStorage.getItem(SOUND_KEY) !== "off";
   } catch {
-    return false;
+    return true;
   }
 }
 

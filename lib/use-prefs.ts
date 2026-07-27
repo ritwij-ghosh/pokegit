@@ -24,5 +24,5 @@ export function useTheme(): ThemeName | null {
 }
 
 export function useSoundEnabled(): boolean {
-  return useSyncExternalStore(subscribe, readSound, () => false);
+  return useSyncExternalStore(subscribe, readSound, () => true);
 }

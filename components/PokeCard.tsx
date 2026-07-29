@@ -7,6 +7,7 @@ import { DexBall } from "@/components/DexBall";
 import { LanguageSymbol } from "@/components/LanguageSymbol";
 import { TypeSymbol } from "@/components/TypeSymbol";
 import { derivePalette } from "@/lib/card-palette";
+import { COPY } from "@/lib/copy";
 import type { CardMove } from "@/lib/moves";
 import type { ShareCardStats } from "@/lib/share-posts";
 import { TYPE_BACKDROPS } from "@/lib/type-backdrops";
@@ -299,12 +300,12 @@ export default function PokeCard({
 
             <div className="pokecard__credits">
               <span>
-                <b>PokeGit</b>
+                <b>{COPY.brand.credit}</b>
               </span>
               <DexBall
                 size="calc(var(--cw) * 0.048)"
                 className="pokecard__mark"
-                title="PokeGit"
+                title={COPY.brand.credit}
                 variant="outline"
               />
             </div>

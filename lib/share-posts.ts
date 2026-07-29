@@ -1,3 +1,4 @@
+import { SITE_ORIGIN } from "@/lib/site";
 import type { PokemonType } from "@/lib/types";
 
 /** Snapshot of the profile fields stamped onto social posts / exports. */
@@ -31,9 +32,9 @@ export interface ShareCardStats {
 
 export interface SharePostContext {
   username: string;
-  /** Personal card page, e.g. https://pokegit.dev/octocat */
+  /** Personal card page, e.g. https://pokegit.com/octocat */
   pageUrl: string;
-  /** Site root for "try your own", e.g. https://pokegit.dev/ */
+  /** Site root for "try your own", e.g. https://pokegit.com/ */
   homeUrl: string;
   stats: ShareCardStats;
 }
@@ -354,6 +355,5 @@ export function sharePost(
 }
 
 export function siteHomeUrl(): string {
-  if (typeof window === "undefined") return "https://pokegit.dev/";
-  return `${window.location.origin}/`;
+  return `${SITE_ORIGIN}/`;
 }

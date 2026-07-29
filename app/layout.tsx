@@ -5,6 +5,7 @@ import "./globals.css";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { THEME_BOOT } from "@/lib/prefs";
+import { SITE_ORIGIN } from "@/lib/site";
 
 /**
  * Press Start 2P (SIL OFL) is the display face: wordmark, page headings, nav
@@ -43,6 +44,7 @@ const cabin = Cabin({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_ORIGIN),
   title: "PokeGit — your GitHub profile as a Pokedex entry",
   description:
     "Turn any public GitHub profile into a Pokedex entry and a Pokemon-style trading card: base stats, typing, ability and flavor text.",

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "inspect": "tsx --conditions=react-server --env-file=.env.local scripts/inspect-profile.ts",
     "test:moves": "tsx scripts/test-moves.ts",
-    "test:pokedex": "tsx --conditions=react-server --env-file=.env.local scripts/test-pokedex-cache.ts"
+    "test:pokedex": "tsx --conditions=react-server --env-file=.env.local scripts/test-pokedex-cache.ts",
+    "test:mobile-copy": "node scripts/test-mobile-copy.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.8",

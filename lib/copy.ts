@@ -1,3 +1,5 @@
+import { SITE_CREDIT, SITE_HOST } from "@/lib/site";
+
 /**
  * Every themed string in the UI lives here so the tone can be retuned without
  * hunting through components.
@@ -10,6 +12,8 @@
 export const COPY = {
   brand: {
     wordmark: "PokeGit",
+    /** Domain credit stamped on the card face (bottom left). */
+    credit: SITE_CREDIT,
     kicker: "github x pokedex",
     tagline:
       "Every public GitHub profile is a species with observable habits. Enter a username to read its base stats, typing, ability and Pokedex entry.",
@@ -153,9 +157,9 @@ export const COPY = {
     popupBlocked: "Popup blocked — allow popups to post",
     error: "Couldn't export — try again",
     storyTagline: "YOUR GITHUB, SCANNED",
-    storyCta: "TRY YOUR CARD ON POKEGIT.DEV →",
+    storyCta: `TRY YOUR CARD ON ${SITE_HOST.toUpperCase()} →`,
     bannerTagline: "GITHUB → POKEDEX CARD",
-    bannerCta: "SCAN YOURS ON POKEGIT.DEV →",
+    bannerCta: `SCAN YOURS ON ${SITE_HOST.toUpperCase()} →`,
   },
 
   docs: {

@@ -72,5 +72,5 @@ Notes:
 - No LLM call in the critical path — keep it instant.
 
 ## 6. Out of Scope (tracked separately)
-- Swapping `localhost:3000` → deployed Vercel domain once live.
+- Canonical share/export URLs use `https://pokegit.com` (see `SITE_ORIGIN` in `lib/site.ts`).
 - Any stat rebalancing/normalization on the underlying card generation itself.

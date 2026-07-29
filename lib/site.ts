@@ -1,3 +1,9 @@
+/** Canonical public origin — shares, exports, OG metadata, absolute links. */
+export const SITE_ORIGIN = "https://pokegit.com";
+export const SITE_HOST = "pokegit.com";
+/** Card bottom-left credit / human-readable domain label. */
+export const SITE_CREDIT = "PokeGit.com";
+
 /** Public project identity — used by chrome CTAs (nav star, share, etc.). */
 export const SITE_REPO = {
   owner: "ritwij-ghosh",

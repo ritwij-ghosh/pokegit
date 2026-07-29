@@ -1,5 +1,7 @@
 import { toBlob, toPng } from "html-to-image";
 
+import { SITE_ORIGIN } from "@/lib/site";
+
 const CAPTURE = {
   pixelRatio: 2,
   cacheBust: true,
@@ -138,6 +140,5 @@ export async function copyTextToClipboard(text: string) {
 }
 
 export function sharePageUrl(username: string): string {
-  if (typeof window === "undefined") return `/${username}`;
-  return `${window.location.origin}/${encodeURIComponent(username)}`;
+  return `${SITE_ORIGIN}/${encodeURIComponent(username)}`;
 }

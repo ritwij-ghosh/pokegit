@@ -217,7 +217,7 @@ where they'll go.
 │   placeholder description line      │
 │ ─────────────────────────────────── │
 │ Weakness: [ph]  Resist: [ph]  Retreat: [ph]│
-│ PokeGit.dev            Illus. PokeGit│
+│ PokeGit.com            Illus. PokeGit│
 └─────────────────────────────────────┘
 ```
 

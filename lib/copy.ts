@@ -146,6 +146,7 @@ export const COPY = {
     shareX: "Share on X",
     working: "Working...",
     copiedImage: "Copied to clipboard",
+    sharedImage: "Ready to share",
     copiedLink: "Link copied",
     saved: "Saved",
     bannerReady: "Banner saved — attach it to your post",

@@ -17,7 +17,9 @@ import {
   captureElementPng,
   copyBlobToClipboard,
   copyTextToClipboard,
+  downloadBlob,
   downloadDataUrl,
+  shareImageFile,
   sharePageUrl,
 } from "@/lib/card-export";
 import { COPY } from "@/lib/copy";
@@ -187,9 +189,34 @@ export default function CardShareMenu({
       }
 
       if (action === "copyImage") {
-        const blob = await captureElementBlob(card);
-        await copyBlobToClipboard(blob);
-        flashStatus("ok", COPY.share.copiedImage);
+        // Start capture immediately, but pass the Promise into ClipboardItem so
+        // Safari/iOS still sees clipboard.write inside the user gesture.
+        const blobPromise = captureElementBlob(card);
+        try {
+          await copyBlobToClipboard(blobPromise);
+          flashStatus("ok", COPY.share.copiedImage);
+          playChime();
+          return;
+        } catch (clipboardError) {
+          console.warn("Clipboard image write failed, trying fallbacks", clipboardError);
+        }
+
+        const blob = await blobPromise;
+        const filename = `pokegit-${username}.png`;
+        const shared = await shareImageFile(blob, filename);
+        if (shared === "shared") {
+          flashStatus("ok", COPY.share.sharedImage);
+          playChime();
+          return;
+        }
+        if (shared === "cancelled") {
+          setStatus("idle");
+          setStatusText("");
+          return;
+        }
+
+        downloadBlob(blob, filename);
+        flashStatus("ok", COPY.share.saved);
         playChime();
         return;
       }
